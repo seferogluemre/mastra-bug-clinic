@@ -45,6 +45,7 @@ const app = new Elysia()
         {
           resourceId: userId || 'default-user',
           threadId: threadId || 'default-thread',
+          toolChoice: 'auto',
         }
       );
 
