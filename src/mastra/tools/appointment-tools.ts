@@ -2,19 +2,18 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import { appointmentService } from '../../modules/appointment/appointment.service';
 
-/**
- * Tool: Randevu Oluştur
- * Direkt servis çağrısı yapılır, fetch kullanılmaz
- */
+const DEFAULT_PATIENT_ID = '550e8400-e29b-41d4-a716-446655440001'; // Ayşe Yılmaz
+const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Yılmaz
+
 export const createAppointmentTool = createTool({
   id: 'create-appointment',
-  description: 'Creates a new appointment for a patient with a doctor at a specific date and time. Use this when the user wants to book, schedule, or create an appointment.',
+  description: 'Creates a new appointment. Use this when the user wants to book or schedule an appointment. Patient and doctor IDs are optional (will use defaults).',
   inputSchema: z.object({
-    patientId: z.string().uuid().describe('Patient ID (UUID format)'),
-    doctorId: z.string().uuid().describe('Doctor ID (UUID format)'),
     date: z.string().datetime().describe('Appointment date and time in ISO 8601 format (e.g., 2024-10-15T14:00:00Z)'),
-    duration: z.number().min(15).max(240).optional().describe('Duration in minutes (default: 30, min: 15, max: 240)'),
+    duration: z.number().min(15).max(240).optional().describe('Duration in minutes (default: 30)'),
     notes: z.string().max(500).optional().describe('Additional notes for the appointment'),
+    patientId: z.string().uuid().optional().describe('Patient ID (optional, uses default if not provided)'),
+    doctorId: z.string().uuid().optional().describe('Doctor ID (optional, uses default if not provided)'),
   }),
   outputSchema: z.object({
     id: z.string(),
@@ -41,8 +40,8 @@ export const createAppointmentTool = createTool({
   execute: async ({ context }) => {
     try {
       const appointment = await appointmentService.create({
-        patientId: context.patientId,
-        doctorId: context.doctorId,
+        patientId: context.patientId || DEFAULT_PATIENT_ID, // Sabit ID kullan
+        doctorId: context.doctorId || DEFAULT_DOCTOR_ID, // Sabit ID kullan
         date: context.date,
         duration: context.duration,
         notes: context.notes,
@@ -54,18 +53,15 @@ export const createAppointmentTool = createTool({
   },
 });
 
-/**
- * Tool: Randevuları Listele
- */
 export const listAppointmentsTool = createTool({
   id: 'list-appointments',
-  description: 'Lists appointments with optional filters. Can filter by patient, doctor, date range, or status. Use this when user asks to see, list, or check appointments.',
+  description: 'Lists appointments. Use this when user asks to see, list, or check appointments. Will use default patient if no patientId provided.',
   inputSchema: z.object({
-    patientId: z.string().uuid().optional().describe('Filter by patient ID'),
-    doctorId: z.string().uuid().optional().describe('Filter by doctor ID'),
     startDate: z.string().datetime().optional().describe('Start date for filtering (ISO 8601 format)'),
     endDate: z.string().datetime().optional().describe('End date for filtering (ISO 8601 format)'),
     status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional().describe('Filter by appointment status'),
+    patientId: z.string().uuid().optional().describe('Filter by patient ID (optional, uses default)'),
+    doctorId: z.string().uuid().optional().describe('Filter by doctor ID (optional)'),
   }),
   outputSchema: z.array(
     z.object({
@@ -91,7 +87,10 @@ export const listAppointmentsTool = createTool({
   ),
   execute: async ({ context }) => {
     try {
-      const appointments = await appointmentService.list(context);
+      const appointments = await appointmentService.list({
+        ...context,
+        patientId: context.patientId || DEFAULT_PATIENT_ID, // Sabit ID kullan
+      });
       return appointments;
     } catch (error) {
       throw new Error(`Randevular listelenemedi: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
@@ -99,9 +98,6 @@ export const listAppointmentsTool = createTool({
   },
 });
 
-/**
- * Tool: Tek Randevu Getir
- */
 export const getAppointmentTool = createTool({
   id: 'get-appointment',
   description: 'Gets details of a specific appointment by ID. Use this when user asks about a specific appointment.',
