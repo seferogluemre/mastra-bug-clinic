@@ -2,24 +2,21 @@
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
 import { LibSQLStore } from '@mastra/libsql';
-import { weatherWorkflow } from './workflows/weather-workflow';
-import { weatherAgent } from './agents/weather-agent';
+import { clinicAgent } from './agents/clinic-agent';
 
 export const mastra = new Mastra({
-  workflows: { weatherWorkflow },
-  agents: { weatherAgent },
+  agents: { clinicAgent },
   storage: new LibSQLStore({
-    url: ":memory:",
+    url: 'file:./mastra-storage.db',
   }),
   logger: new PinoLogger({
-    name: 'Mastra',
+    name: 'Mastra Clinic',
     level: 'info',
   }),
   telemetry: {
     enabled: false, 
   },
   observability: {
-    // Enables DefaultExporter and CloudExporter for AI tracing
     default: { enabled: true }, 
   },
 });

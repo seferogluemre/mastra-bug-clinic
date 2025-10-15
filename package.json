@@ -5,7 +5,12 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "mastra dev",
+    "dev": "bun run src/index.ts",
+    "dev:mastra": "mastra dev",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
     "build": "mastra build",
     "start": "mastra start"
   },
@@ -21,11 +26,14 @@
     "@mastra/libsql": "^0.15.2",
     "@mastra/loggers": "^0.10.16",
     "@mastra/memory": "^0.15.7",
+    "@prisma/client": "^6.17.1",
+    "elysia": "^1.4.12",
     "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^24.7.2",
     "mastra": "^0.16.0",
+    "prisma": "^6.0.0",
     "typescript": "^5.9.3"
   }
 }
