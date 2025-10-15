@@ -2,8 +2,12 @@ import { Elysia } from 'elysia';
 import { mastra } from './mastra';
 import { z } from 'zod';
 import { chatSchema } from './schemas';
+import { swagger } from '@elysiajs/swagger';
+import { cors } from '@elysiajs/cors';
 
 const app = new Elysia()
+.use(swagger())
+.use(cors())
   .get('/', () => ({
     message: 'Klinik Yönetim Sistemi API',
     version: '1.0.0',
