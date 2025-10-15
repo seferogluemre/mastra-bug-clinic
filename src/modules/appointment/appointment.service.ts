@@ -1,4 +1,4 @@
-import prisma from '../core/prisma';
+import prisma from '../../core/prisma';
 import type { CreateAppointmentDto, UpdateAppointmentDto, ListAppointmentsDto } from './appointment.dto';
 import { formatAppointment, formatAppointmentWithDetails, formatAppointmentsWithDetails } from './appointment.formatter';
 

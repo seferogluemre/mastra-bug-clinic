@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { appointmentService } from '../../appointment/appointment.service';
+import { appointmentService } from '../../modules/appointment/appointment.service';
 
 /**
  * Tool: Randevu Oluştur

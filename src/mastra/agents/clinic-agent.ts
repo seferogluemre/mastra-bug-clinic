@@ -57,11 +57,7 @@ Sen: [listAppointmentsTool kullanarak randevuları listele]
 
 Randevu işlemlerinde tool'ları doğru kullan ve kullanıcıya net bilgi ver!
 `,
-  model: {
-    provider: 'GROQ',
-    name: 'llama-3.3-70b-versatile',
-    toolChoice: 'auto',
-  },
+  model: 'groq/llama-3.3-70b-versatile',
   tools: {
     createAppointmentTool,
     listAppointmentsTool,
