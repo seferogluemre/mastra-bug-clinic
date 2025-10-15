@@ -1,0 +1,77 @@
+{
+  "appointments": [
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440001",
+      "patientId": "550e8400-e29b-41d4-a716-446655440001",
+      "doctorId": "660e8400-e29b-41d4-a716-446655440001",
+      "date": "2024-10-20T09:00:00.000Z",
+      "duration": 30,
+      "status": "confirmed",
+      "notes": "Rutin kontrol"
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440002",
+      "patientId": "550e8400-e29b-41d4-a716-446655440002",
+      "doctorId": "660e8400-e29b-41d4-a716-446655440002",
+      "date": "2024-10-20T10:00:00.000Z",
+      "duration": 45,
+      "status": "pending",
+      "notes": "Cilt kontrolü"
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440003",
+      "patientId": "550e8400-e29b-41d4-a716-446655440003",
+      "doctorId": "660e8400-e29b-41d4-a716-446655440003",
+      "date": "2024-10-20T11:00:00.000Z",
+      "duration": 30,
+      "status": "confirmed",
+      "notes": "Diz ağrısı muayene"
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440004",
+      "patientId": "550e8400-e29b-41d4-a716-446655440004",
+      "doctorId": "660e8400-e29b-41d4-a716-446655440004",
+      "date": "2024-10-20T14:00:00.000Z",
+      "duration": 60,
+      "status": "confirmed",
+      "notes": "Baş ağrısı şikayeti"
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440005",
+      "patientId": "550e8400-e29b-41d4-a716-446655440005",
+      "doctorId": "660e8400-e29b-41d4-a716-446655440005",
+      "date": "2024-10-20T15:00:00.000Z",
+      "duration": 30,
+      "status": "pending",
+      "notes": "Göz muayenesi"
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440006",
+      "patientId": "550e8400-e29b-41d4-a716-446655440001",
+      "doctorId": "660e8400-e29b-41d4-a716-446655440003",
+      "date": "2024-10-21T09:30:00.000Z",
+      "duration": 30,
+      "status": "pending",
+      "notes": "Omuz ağrısı kontrolü"
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440007",
+      "patientId": "550e8400-e29b-41d4-a716-446655440002",
+      "doctorId": "660e8400-e29b-41d4-a716-446655440001",
+      "date": "2024-10-21T10:30:00.000Z",
+      "duration": 45,
+      "status": "cancelled",
+      "notes": "Hasta iptal etti"
+    },
+    {
+      "id": "770e8400-e29b-41d4-a716-446655440008",
+      "patientId": "550e8400-e29b-41d4-a716-446655440003",
+      "doctorId": "660e8400-e29b-41d4-a716-446655440002",
+      "date": "2024-10-18T13:00:00.000Z",
+      "duration": 30,
+      "status": "completed",
+      "notes": "Cilt muayenesi tamamlandı"
+    }
+  ]
+}
+
