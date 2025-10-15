@@ -7,13 +7,11 @@ const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Y
 
 export const createAppointmentTool = createTool({
   id: 'create-appointment',
-  description: 'Creates a new appointment. Use this when the user wants to book or schedule an appointment. Patient and doctor IDs are optional (will use defaults).',
+  description: 'Creates a new appointment. ONLY requires date parameter. Patient and doctor are automatically assigned.',
   inputSchema: z.object({
-    date: z.string().datetime().describe('Appointment date and time in ISO 8601 format (e.g., 2024-10-15T14:00:00Z)'),
+    date: z.string().datetime().describe('Appointment date and time in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.000Z)'),
     duration: z.number().min(15).max(240).optional().describe('Duration in minutes (default: 30)'),
-    notes: z.string().max(500).optional().describe('Additional notes for the appointment'),
-    patientId: z.string().uuid().optional().describe('Patient ID (optional, uses default if not provided)'),
-    doctorId: z.string().uuid().optional().describe('Doctor ID (optional, uses default if not provided)'),
+    notes: z.string().max(500).optional().describe('Additional notes'),
   }),
   outputSchema: z.object({
     id: z.string(),
@@ -40,10 +38,10 @@ export const createAppointmentTool = createTool({
   execute: async ({ context }) => {
     try {
       const appointment = await appointmentService.create({
-        patientId: context.patientId || DEFAULT_PATIENT_ID, // Sabit ID kullan
-        doctorId: context.doctorId || DEFAULT_DOCTOR_ID, // Sabit ID kullan
+        patientId: DEFAULT_PATIENT_ID, // Sabit ID
+        doctorId: DEFAULT_DOCTOR_ID, // Sabit ID
         date: context.date,
-        duration: context.duration,
+        duration: context.duration || 30,
         notes: context.notes,
       });
       return appointment;
@@ -55,13 +53,11 @@ export const createAppointmentTool = createTool({
 
 export const listAppointmentsTool = createTool({
   id: 'list-appointments',
-  description: 'Lists appointments. Use this when user asks to see, list, or check appointments. Will use default patient if no patientId provided.',
+  description: 'Lists appointments for the default patient. No parameters required.',
   inputSchema: z.object({
-    startDate: z.string().datetime().optional().describe('Start date for filtering (ISO 8601 format)'),
-    endDate: z.string().datetime().optional().describe('End date for filtering (ISO 8601 format)'),
-    status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional().describe('Filter by appointment status'),
-    patientId: z.string().uuid().optional().describe('Filter by patient ID (optional, uses default)'),
-    doctorId: z.string().uuid().optional().describe('Filter by doctor ID (optional)'),
+    startDate: z.string().datetime().optional().describe('Start date for filtering'),
+    endDate: z.string().datetime().optional().describe('End date for filtering'),
+    status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional().describe('Filter by status'),
   }),
   outputSchema: z.array(
     z.object({
@@ -89,7 +85,7 @@ export const listAppointmentsTool = createTool({
     try {
       const appointments = await appointmentService.list({
         ...context,
-        patientId: context.patientId || DEFAULT_PATIENT_ID, // Sabit ID kullan
+        patientId: DEFAULT_PATIENT_ID, // Sabit ID
       });
       return appointments;
     } catch (error) {
