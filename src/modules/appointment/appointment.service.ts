@@ -27,23 +27,42 @@ export class AppointmentService {
 
     // Randevu çakışması var mı kontrol et
     const appointmentDate = new Date(data.date);
-    const endDate = new Date(appointmentDate.getTime() + (data.duration || 30) * 60000);
+    const duration = data.duration || 30;
+    const appointmentEndTime = new Date(appointmentDate.getTime() + duration * 60000);
 
-    const conflictingAppointment = await prisma.appointment.findFirst({
+    // Doktorun bu tarihte tüm randevularını getir
+    const existingAppointments = await prisma.appointment.findMany({
       where: {
         doctorId: data.doctorId,
         status: {
           in: ['pending', 'confirmed'],
         },
         date: {
-          gte: new Date(appointmentDate.getTime() - 60 * 60000), // 1 saat öncesi
-          lte: new Date(appointmentDate.getTime() + 60 * 60000), // 1 saat sonrası
+          gte: new Date(appointmentDate.getTime() - 24 * 60 * 60000), // 1 gün öncesi
+          lte: new Date(appointmentDate.getTime() + 24 * 60 * 60000), // 1 gün sonrası
         },
       },
     });
 
-    if (conflictingAppointment) {
-      throw new Error('Bu saatte doktorun başka bir randevusu var');
+    // Çakışma kontrolü
+    for (const existing of existingAppointments) {
+      const existingEndTime = new Date(existing.date.getTime() + existing.duration * 60000);
+      
+      const isConflict = 
+        (appointmentDate >= existing.date && appointmentDate < existingEndTime) || // Yeni randevu mevcut randevunun içinde başlıyor
+        (appointmentEndTime > existing.date && appointmentEndTime <= existingEndTime) || // Yeni randevu mevcut randevunun içinde bitiyor
+        (appointmentDate <= existing.date && appointmentEndTime >= existingEndTime); // Yeni randevu mevcut randevuyu kapsıyor
+      
+      if (isConflict) {
+        const existingTime = existing.date.toLocaleString('tr-TR', { 
+          day: '2-digit', 
+          month: '2-digit', 
+          year: 'numeric',
+          hour: '2-digit', 
+          minute: '2-digit' 
+        });
+        throw new Error(`Bu saatte doktorun başka bir randevusu var (${existingTime})`);
+      }
     }
 
     // Randevu oluştur

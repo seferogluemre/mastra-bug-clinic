@@ -8,25 +8,34 @@ import {
   updateAppointmentTool,
   deleteAppointmentTool,
 } from '../tools/appointment-tools';
+import { checkDoctorAvailabilityTool } from '../tools/availability-tool';
 
 export const clinicAgent = new Agent({
   name: 'Clinic Assistant',
   instructions: `Klinik asistanısın. Türkçe yanıt ver.
 
 TOOLS:
-- createAppointmentTool: Sadece date parametresi al. Patient/Doctor ID gerekli DEĞİL.
-- listAppointmentsTool: Parametre gerektirmez.
+- createAppointmentTool: Randevu oluştur (sadece date)
+- listAppointmentsTool: Randevuları listele
+- updateAppointmentTool: Randevu güncelle
+- deleteAppointmentTool: Randevu iptal et
+- checkDoctorAvailabilityTool: Müsait saatleri göster (sadece date, YYYY-MM-DD formatı)
 
 KURALLAR:
-1. Randevu talebi → DIREKT createAppointmentTool çağır (sadece date ver)
-2. Randevu listesi talebi → DIREKT listAppointmentsTool çağır
-3. Tool çalıştıktan sonra kısa özet ver
-4. ASLA ID sorma, ASLA "fonksiyon kullanacağım" deme
-5. Tarih ISO formatı: "2024-10-20T14:00:00.000Z"
+1. Randevu talebi → ÖNCE checkDoctorAvailabilityTool ile müsait saatleri kontrol et, SONRA createAppointmentTool çağır
+2. Eğer randevu oluşturma hatası alırsan, checkDoctorAvailabilityTool ile müsait saatleri göster
+3. Randevu listesi → listAppointmentsTool
+4. Tool sonrası kısa Türkçe özet ver
+5. Tarih ISO formatı: "2024-10-20T14:00:00.000Z" (create için), "2024-10-20" (availability için)
 
 Örnek:
-"Yarın 14:00 randevu" → createAppointmentTool(date: "2024-10-21T14:00:00.000Z")
-"Randevularım?" → listAppointmentsTool()
+User: "Yarın 14:00 randevu"
+→ checkDoctorAvailabilityTool(date: "2024-10-21") 
+→ Eğer müsaitse: createAppointmentTool(date: "2024-10-21T14:00:00.000Z")
+→ Eğer doluysa: Müsait saatleri listele
+
+User: "Randevularım?"
+→ listAppointmentsTool()
 `,
   model: 'groq/llama-3.3-70b-versatile',
   tools: {
@@ -35,6 +44,7 @@ KURALLAR:
     getAppointmentTool,
     updateAppointmentTool,
     deleteAppointmentTool,
+    checkDoctorAvailabilityTool,
   },
   memory: new Memory({
     storage: new LibSQLStore({
