@@ -75,9 +75,19 @@ Kullanıcı Mesajı: ${message}`,
       };
     } catch (error) {
       console.error('Chat error:', error);
-      set.status = 400;
+
+      // Rate limit hatası kontrolü
+      if (error instanceof Error && error.message.includes('Rate limit')) {
+        set.status = 429;
+        return {
+          success: false,
+          error: 'API limiti aşıldı. Lütfen birkaç dakika sonra tekrar deneyin.',
+          retryAfter: 130, // saniye
+        };
+      }
 
       if (error instanceof z.ZodError) {
+        set.status = 400;
         return {
           success: false,
           error: 'Geçersiz istek',
@@ -85,6 +95,7 @@ Kullanıcı Mesajı: ${message}`,
         };
       }
 
+      set.status = 400;
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu',
