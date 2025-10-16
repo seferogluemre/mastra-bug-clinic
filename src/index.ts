@@ -35,17 +35,33 @@ const app = new Elysia()
         };
       }
 
+      // Bugünün tarihini context olarak ekle
+      const today = new Date();
+      const todayStr = today.toLocaleDateString('tr-TR', { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      });
+      const todayISO = today.toISOString().split('T')[0]; // YYYY-MM-DD
+
+      console.log('📅 Context:', { todayStr, todayISO, message });
+
       const response = await agent.generate(
         [
           {
             role: 'user',
-            content: message,
+            content: `BUGÜN: ${todayStr} (${todayISO})
+
+Kullanıcı Mesajı: ${message}`,
           },
         ],
         {
           resourceId: userId || 'default-user',
           threadId: threadId || 'default-thread',
           toolChoice: 'auto',
+          temperature: 0.3, // Daha tutarlı yanıtlar için düşük
+          maxTokens: 1000, // Yeterli uzunluk
         }
       );
 
