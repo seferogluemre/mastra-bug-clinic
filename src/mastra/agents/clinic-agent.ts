@@ -42,7 +42,7 @@ CEVAP STILI:
 - Randevu OK: "Hazır! 📅 17 Ekim, 13:00 👨‍⚕️ Dr. Ahmet ✅"
 - Dolu: "Maalesef dolu 😔 Alternatifler: 09:00, 11:00, 15:00"
 `,
-  model: 'google/gemini-1.5-flash', // Ücretsiz + yüksek limit 
+  model: 'openai/gpt-4o-mini', 
   tools: {
     createAppointmentTool,
     listAppointmentsTool,
@@ -57,9 +57,10 @@ CEVAP STILI:
     updatePatientTool,
     getPatientStatsTool,
   },
-  memory: new Memory({
-    storage: new LibSQLStore({
-      url: 'file:../mastra.db', 
-    }),
-  }),
+  // Memory geçici kapalı (token tasarrufu)
+  // memory: new Memory({
+  //   storage: new LibSQLStore({
+  //     url: 'file:../mastra.db', 
+  //   }),
+  // }),
 });
