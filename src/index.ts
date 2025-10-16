@@ -60,8 +60,6 @@ Kullanıcı Mesajı: ${message}`,
           resourceId: userId || 'default-user',
           threadId: threadId || 'default-thread',
           toolChoice: 'auto',
-          temperature: 0.3, // Daha tutarlı yanıtlar için düşük
-          maxTokens: 1000, // Yeterli uzunluk
         }
       );
 
