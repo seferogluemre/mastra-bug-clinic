@@ -4,10 +4,6 @@ import prisma from '../../core/prisma';
 
 const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Yılmaz
 
-/**
- * Tool: Doktor Müsaitlik Kontrolü
- * Belirtilen tarihte doktorun müsait saatlerini gösterir
- */
 export const checkDoctorAvailabilityTool = createTool({
   id: 'check-doctor-availability',
   description: 'Checks doctor availability for a specific date and shows available time slots. Use this when user asks about available times.',
@@ -126,4 +122,3 @@ export const checkDoctorAvailabilityTool = createTool({
     };
   },
 });
-
