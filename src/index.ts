@@ -24,9 +24,7 @@ const app = new Elysia()
     try {
       const validatedBody = chatSchema.parse(body);
       const { message, threadId, userId } = validatedBody;
-
       const agent = mastra.getAgent('clinicAgent');
-
       if (!agent) {
         set.status = 500;
         return {
@@ -34,8 +32,6 @@ const app = new Elysia()
           error: 'Clinic agent bulunamadı',
         };
       }
-
-      // Bugünün tarihini context olarak ekle
       const today = new Date();
       const todayStr = today.toLocaleDateString('tr-TR', { 
         weekday: 'long', 
@@ -62,7 +58,6 @@ Kullanıcı Mesajı: ${message}`,
           toolChoice: 'auto',
         }
       );
-
       return {
         success: true,
         data: {
@@ -73,7 +68,6 @@ Kullanıcı Mesajı: ${message}`,
       };
     } catch (error) {
       console.error('Chat error:', error);
-
       // Rate limit hatası kontrolü
       if (error instanceof Error && error.message.includes('Rate limit')) {
         set.status = 429;
@@ -83,7 +77,6 @@ Kullanıcı Mesajı: ${message}`,
           retryAfter: 130, // saniye
         };
       }
-
       if (error instanceof z.ZodError) {
         set.status = 400;
         return {
@@ -92,7 +85,6 @@ Kullanıcı Mesajı: ${message}`,
           details: error.errors,
         };
       }
-
       set.status = 400;
       return {
         success: false,
@@ -101,5 +93,4 @@ Kullanıcı Mesajı: ${message}`,
     }
   })
   .listen(3000);
-
 console.log(`Elysia Server running at http://localhost:${app.server?.port}`);

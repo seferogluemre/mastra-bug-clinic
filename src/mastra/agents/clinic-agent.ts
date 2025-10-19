@@ -42,7 +42,7 @@ CEVAP STILI:
 - Randevu OK: "Hazır! 📅 17 Ekim, 13:00 👨‍⚕️ Dr. Ahmet ✅"
 - Dolu: "Maalesef dolu 😔 Alternatifler: 09:00, 11:00, 15:00"
 `,
-  model: 'openai/gpt-4o-mini', 
+  model: 'groq/llama-3.1-8b-instant', 
   tools: {
     createAppointmentTool,
     listAppointmentsTool,
