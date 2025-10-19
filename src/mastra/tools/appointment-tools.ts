@@ -7,13 +7,10 @@ const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Y
 
 export const createAppointmentTool = createTool({
   id: 'create-appointment',
-  description: 'Creates a new appointment. Requires patientId and date. DoctorId is optional (uses default).',
+  description: 'Creates appointment. Only date required. Patient/Doctor auto-assigned.',
   inputSchema: z.object({
-    patientId: z.string().uuid().describe('Patient ID (required)'),
-    date: z.string().datetime().describe('Appointment date and time in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.000Z)'),
-    doctorId: z.string().uuid().optional().describe('Doctor ID (optional, uses default Dr. Ahmet)'),
-    duration: z.number().min(15).max(240).optional().describe('Duration in minutes (default: 30)'),
-    notes: z.string().max(500).optional().describe('Additional notes'),
+    date: z.string().datetime().describe('Date in ISO format (YYYY-MM-DDTHH:mm:ss.000Z)'),
+    notes: z.string().max(500).optional().describe('Optional notes'),
   }),
   outputSchema: z.object({
     id: z.string(),
@@ -40,10 +37,10 @@ export const createAppointmentTool = createTool({
   execute: async ({ context }) => {
     try {
       const appointment = await appointmentService.create({
-        patientId: context.patientId, // Parametreden al
-        doctorId: context.doctorId || DEFAULT_DOCTOR_ID, // Parametre veya sabit
+        patientId: DEFAULT_PATIENT_ID,
+        doctorId: DEFAULT_DOCTOR_ID,
         date: context.date,
-        duration: context.duration || 30,
+        duration: 30,
         notes: context.notes,
       });
       return appointment;
@@ -55,11 +52,8 @@ export const createAppointmentTool = createTool({
 
 export const listAppointmentsTool = createTool({
   id: 'list-appointments',
-  description: 'Lists appointments for a patient. Requires patientId.',
+  description: 'Lists all appointments. No parameters needed.',
   inputSchema: z.object({
-    patientId: z.string().uuid().describe('Patient ID (required)'),
-    startDate: z.string().datetime().optional().describe('Start date for filtering'),
-    endDate: z.string().datetime().optional().describe('End date for filtering'),
     status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional().describe('Filter by status'),
   }),
   outputSchema: z.array(
@@ -86,7 +80,10 @@ export const listAppointmentsTool = createTool({
   ),
   execute: async ({ context }) => {
     try {
-      const appointments = await appointmentService.list(context);
+      const appointments = await appointmentService.list({
+        patientId: DEFAULT_PATIENT_ID,
+        status: context.status,
+      });
       return appointments;
     } catch (error) {
       throw new Error(`Randevular listelenemedi: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
@@ -199,4 +196,3 @@ export const deleteAppointmentTool = createTool({
     }
   },
 });
-
