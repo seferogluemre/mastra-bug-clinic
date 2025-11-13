@@ -1,9 +1,5 @@
-import { openai } from '@ai-sdk/openai';
+import { groq } from '@ai-sdk/groq';
 
-export const openaiModel = (modelName: string = 'gpt-4o') => {
-  return openai(modelName, {
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-};
-
-export const clinicModel = openaiModel('gpt-4o');
+export const clinicModel = groq('llama-3.3-70b-versatile', {
+  apiKey: process.env.GROQ_API_KEY,
+});
