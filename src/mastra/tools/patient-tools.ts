@@ -37,9 +37,6 @@ export const createPatientTool = createTool({
   },
 });
 
-/**
- * Tool: Hasta Bilgilerini Getir
- */
 export const getPatientTool = createTool({
   id: 'getPatient',
   description: 'Get patient information by ID',
@@ -73,9 +70,6 @@ export const getPatientTool = createTool({
   },
 });
 
-/**
- * Tool: Email ile Hasta Bul
- */
 export const findPatientByEmailTool = createTool({
   id: 'findPatientByEmail',
   description: 'Find patient by email address. Returns null if not found.',
@@ -105,9 +99,6 @@ export const findPatientByEmailTool = createTool({
   },
 });
 
-/**
- * Tool: Hasta Ara
- */
 export const searchPatientTool = createTool({
   id: 'searchPatient',
   description: 'Search patients by name, phone, or email',
@@ -132,9 +123,6 @@ export const searchPatientTool = createTool({
   },
 });
 
-/**
- * Tool: Hasta Bilgilerini Güncelle
- */
 export const updatePatientTool = createTool({
   id: 'updatePatient',
   description: 'Update patient information',
@@ -164,9 +152,6 @@ export const updatePatientTool = createTool({
   },
 });
 
-/**
- * Tool: Hasta İstatistikleri
- */
 export const getPatientStatsTool = createTool({
   id: 'getPatientStats',
   description: 'Get patient statistics (total appointments, upcoming, completed)',
@@ -193,4 +178,3 @@ export const getPatientStatsTool = createTool({
     }
   },
 });
-

@@ -40,10 +40,17 @@ export const clinicAgent = new Agent({
    - Sadece date parametresi gönderin (YYYY-MM-DD formatında)
    - Doktor otomatik seçilir
 2. Randevu oluştur → createAppointmentTool 
-   ⚠️ ÖNEMLİ: MUTLAKA notes parametresini kullan!
+   ⚠️ KRİTİK: notes parametresini MUTLAKA kullan ve kullanıcının şikayetini/sağlık sorununun ekle!
    - date: ISO format tarih (zorunlu)
-   - notes: Kullanıcının şikayeti/nedeni (opsiyonel ama MUTLAKA ekle!)
-   Örnek: "boğaz ağrısı için randevu" → notes: "boğaz ağrısı"
+   - notes: Kullanıcının söylediği SPESIFIK şikayet/sağlık sorunu
+   
+   ❌ YANLIŞ: "kullanıcı randevu almak istedi" (çok genel, kullanma!)
+   ✅ DOĞRU örnekler:
+   - "boğaz ağrım var" → notes: "boğaz ağrısı"
+   - "başım ağrıyor" → notes: "baş ağrısı"  
+   - "grip oldum" → notes: "grip"
+   - "kontrol için" → notes: "kontrol muayenesi"
+   
 3. Randevuları listele → listAppointmentsTool
 4. Randevu detayı → getAppointmentTool
 5. Randevu güncelle → updateAppointmentTool (tarih/durum değişikliği)
@@ -51,13 +58,24 @@ export const clinicAgent = new Agent({
 
 🎯 KONUŞMA AKIŞI:
 1. Kullanıcı randevu isterse:
-   - Önce müsait saatleri göster (checkDoctorAvailabilityTool)
+   - ÖNCELİKLE: Kullanıcının şikayetini/sağlık sorununu belirle
+   - Müsait saatleri göster (checkDoctorAvailabilityTool)
    - Kullanıcı saat seçsin
    - Randevu oluştururken:
      * date: Belirlenen tarihi ISO formatında gönder
-     * notes: Kullanıcının söylediği şikayet/neden (MUTLAKA ekle!)
-       Örnek: "başım ağrıyor" → notes: "baş ağrısı"
-       Örnek: "grip için" → notes: "grip"
+     * notes: İLK MESAJDAN belirlediğin SPESIFIK şikayet/sağlık sorunu (MUTLAKA ekle!)
+     
+     📝 NOT BELİRLEME KURALLARI:
+     - Kullanıcının ilk mesajındaki sağlık şikayetini al
+     - "randevu almak istedi" gibi genel ifadeler KULLANMA
+     - Şikayeti kısa ve net yaz (örn: "boğaz ağrısı", "baş ağrısı", "grip")
+     
+     Örnekler:
+     - "boğaz ağrım var, randevu istiyorum" → notes: "boğaz ağrısı"
+     - "başım çok ağrıyor" → notes: "baş ağrısı"
+     - "grip oldum galiba" → notes: "grip"
+     - "sadece kontrol için" → notes: "kontrol muayenesi"
+     
 2. Kullanıcı hasta aramak isterse:
    - searchPatientTool ile ara
    - Sonuçları göster

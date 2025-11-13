@@ -7,10 +7,10 @@ const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Y
 
 export const createAppointmentTool = createTool({
   id: 'createAppointment',
-  description: 'Creates appointment with date and notes. ALWAYS include patient complaint/reason in notes parameter. Patient/Doctor auto-assigned.',
+  description: 'Creates appointment. CRITICAL: Extract and include patient\'s SPECIFIC health complaint in notes (e.g., "boğaz ağrısı", "baş ağrısı"). NEVER use generic phrases like "kullanıcı randevu almak istedi". Patient/Doctor auto-assigned.',
   inputSchema: z.object({
     date: z.string().datetime().describe('Date in ISO format (YYYY-MM-DDTHH:mm:ss.000Z)'),
-    notes: z.string().max(500).optional().describe('Patient complaint or reason for appointment (ALWAYS include if user mentions it)'),
+    notes: z.string().max(500).optional().describe('Patient\'s SPECIFIC health complaint or symptom from their original message. Examples: "boğaz ağrısı", "baş ağrısı", "grip". DO NOT use generic text like "randevu almak istedi".'),
   }).strict(),
   outputSchema: z.object({
     id: z.string(),

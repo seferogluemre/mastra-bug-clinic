@@ -6,8 +6,8 @@ import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
 
 const app = new Elysia()
-.use(swagger())
-.use(cors())
+  .use(swagger())
+  .use(cors())
   .get('/', () => ({
     message: 'Klinik Yönetim Sistemi API',
     version: '1.0.0',
@@ -27,10 +27,10 @@ const app = new Elysia()
     try {
       const validatedBody = chatSchema.parse(body);
       const { message, threadId, userId } = validatedBody;
-      
+
       const uniqueThreadId = threadId || `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const uniqueUserId = userId || 'default-user';
-      
+
       const agent = mastra.getAgent('clinicAgent');
       if (!agent) {
         set.status = 500;
@@ -41,13 +41,15 @@ const app = new Elysia()
       }
 
       const today = new Date();
-      const todayStr = today.toLocaleDateString('tr-TR', { 
-        weekday: 'long', 
-        year: 'numeric', 
-        month: 'long', 
-        day: 'numeric' 
+      
+      const todayStr = today.toLocaleDateString('tr-TR', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
       });
-        const todayISO = today.toISOString().split('T')[0];
+
+      const todayISO = today.toISOString().split('T')[0];
 
       console.log('📅 Context:', { todayStr, todayISO, message });
 
@@ -55,14 +57,14 @@ const app = new Elysia()
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
           console.log('🚀 Mastra Agent kullanılıyor...', { attempt: attempt + 1 });
-          
+
           const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${message}`;
-          
+
           const result = await agent.generate(contextMessage, {
             threadId: uniqueThreadId,
             maxSteps: 5,
           });
-          
+
           console.log('✅ Agent yanıt aldı');
           console.log('📝 Response text:', result.text || 'BOŞ');
           console.log('📏 Text uzunluğu:', result.text?.length || 0);
@@ -81,10 +83,10 @@ const app = new Elysia()
           };
         } catch (err) {
           lastError = err instanceof Error ? err : new Error('Unknown error');
-          
-          const isRateLimit = lastError.message.toLowerCase().includes('rate limit') || 
-                             lastError.message.toLowerCase().includes('429') ||
-                             lastError.message.toLowerCase().includes('too many requests');
+
+          const isRateLimit = lastError.message.toLowerCase().includes('rate limit') ||
+            lastError.message.toLowerCase().includes('429') ||
+            lastError.message.toLowerCase().includes('too many requests');
 
           if (isRateLimit && attempt < MAX_RETRIES - 1) {
             const delay = INITIAL_DELAY * Math.pow(2, attempt);
@@ -98,14 +100,14 @@ const app = new Elysia()
       }
 
       throw lastError || new Error('Maksimum deneme sayısı aşıldı');
-      
+
     } catch (error) {
       console.error('❌ Chat error:', error);
 
-      if (error instanceof Error && 
-          (error.message.toLowerCase().includes('rate limit') || 
-           error.message.toLowerCase().includes('429') ||
-           error.message.toLowerCase().includes('too many requests'))) {
+      if (error instanceof Error &&
+        (error.message.toLowerCase().includes('rate limit') ||
+          error.message.toLowerCase().includes('429') ||
+          error.message.toLowerCase().includes('too many requests'))) {
         set.status = 429;
         return {
           success: false,
@@ -124,10 +126,10 @@ const app = new Elysia()
         };
       }
 
-      if (error instanceof Error && 
-          (error.message.includes('API key') || 
-           error.message.includes('Unauthorized') ||
-           error.message.includes('401'))) {
+      if (error instanceof Error &&
+        (error.message.includes('API key') ||
+          error.message.includes('Unauthorized') ||
+          error.message.includes('401'))) {
         set.status = 401;
         return {
           success: false,
