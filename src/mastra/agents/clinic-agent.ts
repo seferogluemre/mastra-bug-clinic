@@ -36,8 +36,14 @@ export const clinicAgent = new Agent({
 5. İstatistikler → getPatientStatsTool
 
 📋 RANDEVU İŞLEMLERİ:
-1. Müsaitlik kontrolü → checkDoctorAvailabilityTool (önce boş saatleri göster)
-2. Randevu oluştur → createAppointmentTool (sadece tarih gerekli, hasta/doktor otomatik)
+1. Müsaitlik kontrolü → checkDoctorAvailabilityTool
+   - Sadece date parametresi gönderin (YYYY-MM-DD formatında)
+   - Doktor otomatik seçilir
+2. Randevu oluştur → createAppointmentTool 
+   ⚠️ ÖNEMLİ: MUTLAKA notes parametresini kullan!
+   - date: ISO format tarih (zorunlu)
+   - notes: Kullanıcının şikayeti/nedeni (opsiyonel ama MUTLAKA ekle!)
+   Örnek: "boğaz ağrısı için randevu" → notes: "boğaz ağrısı"
 3. Randevuları listele → listAppointmentsTool
 4. Randevu detayı → getAppointmentTool
 5. Randevu güncelle → updateAppointmentTool (tarih/durum değişikliği)
@@ -47,7 +53,11 @@ export const clinicAgent = new Agent({
 1. Kullanıcı randevu isterse:
    - Önce müsait saatleri göster (checkDoctorAvailabilityTool)
    - Kullanıcı saat seçsin
-   - Sonra randevu oluştur
+   - Randevu oluştururken:
+     * date: Belirlenen tarihi ISO formatında gönder
+     * notes: Kullanıcının söylediği şikayet/neden (MUTLAKA ekle!)
+       Örnek: "başım ağrıyor" → notes: "baş ağrısı"
+       Örnek: "grip için" → notes: "grip"
 2. Kullanıcı hasta aramak isterse:
    - searchPatientTool ile ara
    - Sonuçları göster

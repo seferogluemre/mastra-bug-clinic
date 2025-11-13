@@ -4,11 +4,6 @@ import { z } from 'zod';
 import { chatSchema } from './schemas';
 import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
-import { generateText } from 'ai';
-import type { CoreMessage } from 'ai';
-import { aiCreateAppointmentTool, aiListAppointmentsTool, aiUpdateAppointmentTool } from './mastra/tools/appointment-tools';
-
-const conversationHistory = new Map<string, CoreMessage[]>();
 
 const app = new Elysia()
 .use(swagger())
@@ -59,79 +54,27 @@ const app = new Elysia()
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
-          console.log('🚀 Direkt AI SDK kullanılıyor...', { attempt: attempt + 1 });
+          console.log('🚀 Mastra Agent kullanılıyor...', { attempt: attempt + 1 });
           
-          let history = conversationHistory.get(uniqueThreadId) || [];
+          const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${message}`;
           
-          const systemMessage: CoreMessage = {
-            role: 'system',
-            content: `Sen bir klinik yönetim asistanısın. Türkçe konuş, profesyonel ve yardımsever ol.
-Bugün: ${todayStr} (${todayISO})
-
-🛠️ KULLANILABILIR ARAÇLAR:
-1. createAppointment - Randevu oluştur (tarih ISO format: YYYY-MM-DDTHH:mm:ss.000Z, notes opsiyonel)
-2. listAppointments - Randevuları listele
-3. updateAppointment - Randevu güncelle (appointmentId, date, status, notes, duration)
-
-📋 RANDEVU OLUŞTURMA:
-- Kullanıcı "14 kasım saat 12:00" derse → "2025-11-14T12:00:00.000Z" formatına çevir
-- Kullanıcının şikayetini/notunu MUTLAKA notes parametresine ekle
-- Örnek: "boğaz ağrısı için randevu" → notes: "boğaz ağrısı"
-- Randevu oluşturduktan sonra başarılı mesajı göster
-
-💬 YANIT TARZI:
-- Kısa ve öz cevaplar ver
-- Emoji kullan 😊 📅 👨‍⚕️ ✅
-- Her zaman nazik ve yardımsever ol
-- Kullanıcının önceki mesajlarını hatırla ve context'i koru`
-          };
-          
-          const userMessage: CoreMessage = {
-            role: 'user',
-            content: message,
-          };
-          
-          const allMessages: CoreMessage[] = [systemMessage, ...history, userMessage];
-          
-          const result = await generateText({
-            model: agent.model as any,
-            messages: allMessages,
-            tools: {
-              createAppointment: aiCreateAppointmentTool,
-              listAppointments: aiListAppointmentsTool,
-              updateAppointment: aiUpdateAppointmentTool,
-            },
-            temperature: 0.7,
-            maxTokens: 1000,
+          const result = await agent.generate(contextMessage, {
+            threadId: uniqueThreadId,
+            maxSteps: 5,
           });
           
-          console.log('✅ AI SDK yanıt aldı');
+          console.log('✅ Agent yanıt aldı');
           console.log('📝 Response text:', result.text || 'BOŞ');
-          console.log('📏 Text uzunluğu:', result.text.length);
-          console.log('🔢 Tokens:', result.usage);
-          
-          // Tool calls varsa logla
-          if (result.toolCalls && result.toolCalls.length > 0) {
-            console.log('🛠️  Tool calls:', JSON.stringify(result.toolCalls, null, 2));
-          }
-          if (result.toolResults && result.toolResults.length > 0) {
-            console.log('📊 Tool results:', JSON.stringify(result.toolResults, null, 2));
-          }
-          
-          const assistantMessage: CoreMessage = {
-            role: 'assistant',
-            content: result.text,
-          };
-          
-          history.push(userMessage, assistantMessage);
-          conversationHistory.set(uniqueThreadId, history);
-          
-          console.log('💾 History güncellendi:', { threadId: uniqueThreadId, messageCount: history.length });
+          console.log('📏 Text uzunluğu:', result.text?.length || 0);
+
+          // Tool call syntax'ını temizle (örn: <function=createAppointmentTool>{...}</function>)
+          let cleanMessage = result.text || 'Agent yanıt vermedi. Lütfen tekrar deneyin.';
+          cleanMessage = cleanMessage.replace(/<function=[^>]*>.*?<\/function>/gs, '').trim();
 
           return {
             success: true,
             data: {
-              message: result.text || 'Agent yanıt vermedi. Lütfen tekrar deneyin.',
+              message: cleanMessage,
               threadId: uniqueThreadId,
               userId: uniqueUserId,
             },

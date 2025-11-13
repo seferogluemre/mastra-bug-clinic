@@ -1,17 +1,16 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import { appointmentService } from '../../modules/appointment/service';
-import { tool } from 'ai';
 
 const DEFAULT_PATIENT_ID = '550e8400-e29b-41d4-a716-446655440001'; // Ayşe Yılmaz
 const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Yılmaz
 
 export const createAppointmentTool = createTool({
   id: 'createAppointment',
-  description: 'Creates appointment. Only date required. Patient/Doctor auto-assigned.',
+  description: 'Creates appointment with date and notes. ALWAYS include patient complaint/reason in notes parameter. Patient/Doctor auto-assigned.',
   inputSchema: z.object({
     date: z.string().datetime().describe('Date in ISO format (YYYY-MM-DDTHH:mm:ss.000Z)'),
-    notes: z.string().max(500).optional().describe('Optional notes'),
+    notes: z.string().max(500).optional().describe('Patient complaint or reason for appointment (ALWAYS include if user mentions it)'),
   }).strict(),
   outputSchema: z.object({
     id: z.string(),
@@ -189,87 +188,6 @@ export const deleteAppointmentTool = createTool({
       return result;
     } catch (error) {
       throw new Error(`Randevu iptal edilemedi: ${error instanceof Error ? error.message : 'Bilinmeyen hata'}`);
-    }
-  },
-});
-
-
-export const aiCreateAppointmentTool = tool({
-  description: 'Randevu oluşturur. Tarih ISO format olmalı (YYYY-MM-DDTHH:mm:ss.000Z). Not eklenebilir.',
-  parameters: z.object({
-    date: z.string().describe('Randevu tarihi ISO formatında (örn: 2025-11-14T12:00:00.000Z)'),
-    notes: z.string().optional().describe('Randevu notu/şikayeti (isteğe bağlı)'),
-  }),
-  execute: async ({ date, notes }: { date: string; notes?: string }) => {
-    try {
-      const appointment = await appointmentService.create({
-        patientId: DEFAULT_PATIENT_ID,
-        doctorId: DEFAULT_DOCTOR_ID,
-        date,
-        duration: 30,
-        notes,
-      });
-      return {
-        success: true,
-        appointment,
-        message: `Randevu başarıyla oluşturuldu! ${appointment.patient.name} için ${new Date(appointment.date).toLocaleString('tr-TR')} tarihinde randevu alındı.`,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Bilinmeyen hata',
-      };
-    }
-  },
-});
-
-export const aiListAppointmentsTool = tool({
-  description: 'Tüm randevuları listeler. Status ile filtreleme yapılabilir.',
-  parameters: z.object({
-    status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional().describe('Randevu durumu filtresi'),
-  }),
-  execute: async ({ status }: { status?: 'pending' | 'confirmed' | 'cancelled' | 'completed' }) => {
-    try {
-      const appointments = await appointmentService.list({
-        patientId: DEFAULT_PATIENT_ID,
-        status,
-      });
-      return {
-        success: true,
-        appointments,
-        count: appointments.length,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Bilinmeyen hata',
-      };
-    }
-  },
-});
-
-export const aiUpdateAppointmentTool = tool({
-  description: 'Randevu günceller. Tarih, status, not veya süre değiştirilebilir.',
-  parameters: z.object({
-    appointmentId: z.string().uuid().describe('Güncellenecek randevu ID'),
-    date: z.string().datetime().optional().describe('Yeni randevu tarihi (ISO format)'),
-    status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional().describe('Yeni durum'),
-    notes: z.string().max(500).optional().describe('Güncellenmiş not'),
-    duration: z.number().min(15).max(240).optional().describe('Güncellenmiş süre (dakika)'),
-  }),
-  execute: async ({ appointmentId, ...updateData }: { appointmentId: string; date?: string; status?: 'pending' | 'confirmed' | 'cancelled' | 'completed'; notes?: string; duration?: number }) => {
-    try {
-      const appointment = await appointmentService.update(appointmentId, updateData);
-      return {
-        success: true,
-        appointment,
-        message: 'Randevu başarıyla güncellendi.',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Bilinmeyen hata',
-      };
     }
   },
 });
