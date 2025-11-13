@@ -1,6 +1,6 @@
 import prisma from '../../core/prisma';
-import type { CreatePatientDto, UpdatePatientDto, SearchPatientDto } from './patient.dto';
-import { formatPatient, formatPatients } from './patient.formatter';
+import type { CreatePatientDto, UpdatePatientDto, SearchPatientDto } from './dtos';
+import { formatPatient, formatPatients } from './formatters';
 
 export class PatientService {
   async create(data: CreatePatientDto) {

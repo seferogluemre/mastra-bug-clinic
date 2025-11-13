@@ -93,4 +93,3 @@ Kullanıcı Mesajı: ${message}`,
     }
   })
   .listen(3000);
-console.log(`Elysia Server running at http://localhost:${app.server?.port}`);
