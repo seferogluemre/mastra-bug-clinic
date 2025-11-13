@@ -100,7 +100,6 @@ const app = new Elysia()
       }
 
       throw lastError || new Error('Maksimum deneme sayısı aşıldı');
-
     } catch (error) {
       console.error('❌ Chat error:', error);
 

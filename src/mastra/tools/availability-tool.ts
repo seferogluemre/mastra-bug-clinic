@@ -8,25 +8,25 @@ export const checkDoctorAvailabilityTool = createTool({
   id: 'checkDoctorAvailability',
   description: 'Checks doctor availability for a specific date and shows available time slots. Use this when user asks about available times. Always uses default doctor.',
   inputSchema: z.object({
-    date: z.string().describe('Date to check availability (YYYY-MM-DD format, e.g., 2024-10-20)'),
+    date: z.string().describe('Date to check availability in YYYY-MM-DD format (e.g., 2024-10-20 or 2025-11-13)'),
   }).strict(),
   outputSchema: z.object({
-    date: z.string(),
-    doctorName: z.string(),
+    date: z.string().describe('The date being checked (YYYY-MM-DD format)'),
+    doctorName: z.string().describe('Full name of the doctor'),
     workingHours: z.object({
-      start: z.string(),
-      end: z.string(),
-    }),
+      start: z.string().describe('Working hours start time (HH:MM format)'),
+      end: z.string().describe('Working hours end time (HH:MM format)'),
+    }).describe('Doctor working hours for the day'),
     availableSlots: z.array(z.object({
-      startTime: z.string(),
-      endTime: z.string(),
-      duration: z.number(),
-    })),
+      startTime: z.string().describe('Slot start time in ISO format'),
+      endTime: z.string().describe('Slot end time in ISO format'),
+      duration: z.number().describe('Slot duration in minutes'),
+    }).describe('Available time slot')).describe('List of available appointment slots'),
     bookedSlots: z.array(z.object({
-      startTime: z.string(),
-      endTime: z.string(),
-      patientName: z.string(),
-    })),
+      startTime: z.string().describe('Booked slot start time in ISO format'),
+      endTime: z.string().describe('Booked slot end time in ISO format'),
+      patientName: z.string().describe('Name of patient who booked this slot'),
+    }).describe('Booked time slot')).describe('List of already booked slots'),
   }),
   execute: async ({ context }) => {
     const doctorId = DEFAULT_DOCTOR_ID;
@@ -41,7 +41,6 @@ export const checkDoctorAvailabilityTool = createTool({
       throw new Error('Doktor bulunamadı');
     }
 
-    // Çalışma saatleri (örnek: 09:00 - 17:00)
     const workingStart = new Date(targetDate);
     workingStart.setHours(9, 0, 0, 0);
     
