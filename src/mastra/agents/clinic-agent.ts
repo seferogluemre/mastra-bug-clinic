@@ -1,6 +1,7 @@
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { LibSQLStore } from '@mastra/libsql';
+import { clinicModel } from '../../core/llm';
 import {
   createAppointmentTool,
   listAppointmentsTool,
@@ -20,6 +21,7 @@ import {
 
 export const clinicAgent = new Agent({
   name: 'Clinic Assistant',
+  model: clinicModel,
   instructions: `Sen bir klinik yönetim asistanısın. Türkçe konuş, profesyonel ve yardımsever ol.
 
 📅 TARİH YÖNETİMİ:
@@ -64,7 +66,6 @@ export const clinicAgent = new Agent({
 - Her zaman nazik ve yardımsever ol
 - Hata olursa özür dile ve çözüm sun
 `,
-  model: 'openai:gpt-4o', 
   tools: {
     createAppointmentTool,
     listAppointmentsTool,

@@ -51,6 +51,8 @@ const app = new Elysia()
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
+          console.log('🚀 Agent generate başlatılıyor...', { attempt: attempt + 1 });
+          
           const response = await agent.generate(
             [
               {
@@ -67,10 +69,14 @@ Kullanıcı Mesajı: ${message}`,
             }
           );
 
+          console.log('🤖 Agent Response TAM OBJE:', JSON.stringify(response, null, 2));
+          console.log('🤖 Agent Response text:', response?.text);
+          console.log('🤖 Agent Response keys:', Object.keys(response || {}));
+
           return {
             success: true,
             data: {
-              message: response.text,
+              message: response?.text || response?.content || 'Agent yanıt vermedi',
               threadId: threadId || 'default-thread',
               userId: userId || 'default-user',
             },
