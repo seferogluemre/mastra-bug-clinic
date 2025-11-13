@@ -129,9 +129,7 @@ export const getAppointmentTool = createTool({
   },
 });
 
-/**
- * Tool: Randevu Güncelle
- */
+
 export const updateAppointmentTool = createTool({
   id: 'update-appointment',
   description: 'Updates an existing appointment. Can change date, status, notes, or duration. Use when user wants to modify, reschedule, or change an appointment.',
@@ -174,9 +172,6 @@ export const updateAppointmentTool = createTool({
   },
 });
 
-/**
- * Tool: Randevu Sil/İptal Et
- */
 export const deleteAppointmentTool = createTool({
   id: 'delete-appointment',
   description: 'Cancels an appointment by ID. Use when user wants to cancel, delete, or remove an appointment.',

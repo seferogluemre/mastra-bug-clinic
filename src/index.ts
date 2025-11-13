@@ -21,9 +21,13 @@ const app = new Elysia()
     timestamp: new Date().toISOString(),
   }))
   .post('/api/chat', async ({ body, set }) => {
+    const MAX_RETRIES = 3;
+    const INITIAL_DELAY = 1000; // 1 saniye
+
     try {
       const validatedBody = chatSchema.parse(body);
       const { message, threadId, userId } = validatedBody;
+      
       const agent = mastra.getAgent('clinicAgent');
       if (!agent) {
         set.status = 500;
@@ -32,6 +36,7 @@ const app = new Elysia()
           error: 'Clinic agent bulunamadı',
         };
       }
+
       const today = new Date();
       const todayStr = today.toLocaleDateString('tr-TR', { 
         weekday: 'long', 
@@ -43,53 +48,100 @@ const app = new Elysia()
 
       console.log('📅 Context:', { todayStr, todayISO, message });
 
-      const response = await agent.generate(
-        [
-          {
-            role: 'user',
-            content: `BUGÜN: ${todayStr} (${todayISO})
+      let lastError: Error | null = null;
+      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+          const response = await agent.generate(
+            [
+              {
+                role: 'user',
+                content: `BUGÜN: ${todayStr} (${todayISO})
 
 Kullanıcı Mesajı: ${message}`,
-          },
-        ],
-        {
-          resourceId: userId || 'default-user',
-          threadId: threadId || 'default-thread',
-          toolChoice: 'auto',
+              },
+            ],
+            {
+              resourceId: userId || 'default-user',
+              threadId: threadId || 'default-thread',
+              toolChoice: 'auto',
+            }
+          );
+
+          return {
+            success: true,
+            data: {
+              message: response.text,
+              threadId: threadId || 'default-thread',
+              userId: userId || 'default-user',
+            },
+          };
+        } catch (err) {
+          lastError = err instanceof Error ? err : new Error('Unknown error');
+          
+          const isRateLimit = lastError.message.toLowerCase().includes('rate limit') || 
+                             lastError.message.toLowerCase().includes('429') ||
+                             lastError.message.toLowerCase().includes('too many requests');
+
+          if (isRateLimit && attempt < MAX_RETRIES - 1) {
+            const delay = INITIAL_DELAY * Math.pow(2, attempt);
+            console.log(`⏳ Rate limit! Deneme ${attempt + 1}/${MAX_RETRIES}. ${delay}ms bekleniyor...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          }
+
+          throw lastError;
         }
-      );
-      return {
-        success: true,
-        data: {
-          message: response.text,
-          threadId: threadId || 'default-thread',
-          userId: userId || 'default-user',
-        },
-      };
+      }
+
+      throw lastError || new Error('Maksimum deneme sayısı aşıldı');
+      
     } catch (error) {
-      console.error('Chat error:', error);
-      // Rate limit hatası kontrolü
-      if (error instanceof Error && error.message.includes('Rate limit')) {
+      console.error('❌ Chat error:', error);
+
+      // Rate limit hatası
+      if (error instanceof Error && 
+          (error.message.toLowerCase().includes('rate limit') || 
+           error.message.toLowerCase().includes('429') ||
+           error.message.toLowerCase().includes('too many requests'))) {
         set.status = 429;
         return {
           success: false,
-          error: 'API limiti aşıldı. Lütfen birkaç dakika sonra tekrar deneyin.',
-          retryAfter: 130, // saniye
+          error: '⏱️ API limiti aşıldı. Lütfen 2 dakika sonra tekrar deneyin.',
+          retryAfter: 120,
+          details: 'Rate limit aşıldı. GPT-4o kullanıyorsanız, limitler daha yüksektir.',
         };
       }
+
+      // Validation hatası
       if (error instanceof z.ZodError) {
         set.status = 400;
         return {
           success: false,
-          error: 'Geçersiz istek',
+          error: 'Geçersiz istek formatı',
           details: error.errors,
         };
       }
-      set.status = 400;
+
+      // Authentication hatası
+      if (error instanceof Error && 
+          (error.message.includes('API key') || 
+           error.message.includes('Unauthorized') ||
+           error.message.includes('401'))) {
+        set.status = 401;
+        return {
+          success: false,
+          error: '🔑 API key hatası. .env dosyasında OPENAI_API_KEY kontrol edin.',
+        };
+      }
+
+      // Genel hata
+      set.status = 500;
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu',
       };
     }
   })
-  .listen(3000);
+  .listen(3000, () => {
+    console.log('Server is running on http://localhost:3000');
+  });

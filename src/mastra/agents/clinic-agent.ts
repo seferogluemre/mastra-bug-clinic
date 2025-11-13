@@ -64,7 +64,7 @@ export const clinicAgent = new Agent({
 - Her zaman nazik ve yardımsever ol
 - Hata olursa özür dile ve çözüm sun
 `,
-  model: 'groq/llama-3.1-8b-instant', 
+  model: 'openai:gpt-4o', 
   tools: {
     createAppointmentTool,
     listAppointmentsTool,
