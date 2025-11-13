@@ -1,8 +1,5 @@
 import { z } from 'zod';
 
-/**
- * Randevu oluşturma DTO
- */
 export const createAppointmentSchema = z.object({
   patientId: z.string().uuid('Geçerli bir hasta ID giriniz'),
   doctorId: z.string().uuid('Geçerli bir doktor ID giriniz'),
@@ -13,9 +10,6 @@ export const createAppointmentSchema = z.object({
 
 export type CreateAppointmentDto = z.infer<typeof createAppointmentSchema>;
 
-/**
- * Randevu güncelleme DTO
- */
 export const updateAppointmentSchema = z.object({
   date: z.string().datetime().optional(),
   status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional(),
@@ -25,9 +19,6 @@ export const updateAppointmentSchema = z.object({
 
 export type UpdateAppointmentDto = z.infer<typeof updateAppointmentSchema>;
 
-/**
- * Randevu listele filtreleri
- */
 export const listAppointmentsSchema = z.object({
   patientId: z.string().uuid().optional(),
   doctorId: z.string().uuid().optional(),

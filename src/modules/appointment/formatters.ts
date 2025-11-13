@@ -1,39 +1,7 @@
 import type { Appointment, Patient, Doctor } from '@prisma/client';
 
-/**
- * Randevu formatters
- * Database modellerini API response formatına çevirir
- */
+import type { FormattedAppointment, FormattedAppointmentWithDetails } from './types';
 
-export interface FormattedAppointment {
-  id: string;
-  patientId: string;
-  doctorId: string;
-  date: string;
-  duration: number;
-  status: string;
-  notes: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface FormattedAppointmentWithDetails extends FormattedAppointment {
-  patient: {
-    id: string;
-    name: string;
-    phone: string | null;
-    email: string | null;
-  };
-  doctor: {
-    id: string;
-    name: string;
-    specialty: string;
-  };
-}
-
-/**
- * Basit randevu formatı
- */
 export function formatAppointment(appointment: Appointment): FormattedAppointment {
   return {
     id: appointment.id,
@@ -48,9 +16,6 @@ export function formatAppointment(appointment: Appointment): FormattedAppointmen
   };
 }
 
-/**
- * Detaylı randevu formatı (hasta ve doktor bilgileriyle)
- */
 export function formatAppointmentWithDetails(
   appointment: Appointment & {
     patient: Patient;
@@ -73,16 +38,10 @@ export function formatAppointmentWithDetails(
   };
 }
 
-/**
- * Randevu listesi formatı
- */
 export function formatAppointments(appointments: Appointment[]): FormattedAppointment[] {
   return appointments.map(formatAppointment);
 }
 
-/**
- * Detaylı randevu listesi formatı
- */
 export function formatAppointmentsWithDetails(
   appointments: (Appointment & {
     patient: Patient;
@@ -91,4 +50,3 @@ export function formatAppointmentsWithDetails(
 ): FormattedAppointmentWithDetails[] {
   return appointments.map(formatAppointmentWithDetails);
 }
-

@@ -10,7 +10,6 @@ async function seedDatabase() {
   console.log('🌱 Database seeding başlatılıyor...\n');
 
   try {
-    // JSON dosyalarını oku
     const usersData = JSON.parse(
       readFileSync(join(__dirname, 'users', 'users.json'), 'utf-8')
     );
@@ -18,14 +17,12 @@ async function seedDatabase() {
       readFileSync(join(__dirname, 'appointments', 'appointments.json'), 'utf-8')
     );
 
-    // Mevcut verileri temizle (opsiyonel - dikkatli kullan!)
     console.log('🗑️  Mevcut veriler temizleniyor...');
     await prisma.appointment.deleteMany({});
     await prisma.patient.deleteMany({});
     await prisma.doctor.deleteMany({});
     console.log('✅ Mevcut veriler temizlendi\n');
 
-    // Hastaları ekle
     console.log('👥 Hastalar ekleniyor...');
     for (const patient of usersData.patients) {
       await prisma.patient.create({
@@ -37,7 +34,6 @@ async function seedDatabase() {
     }
     console.log(`✅ ${usersData.patients.length} hasta eklendi\n`);
 
-    // Doktorları ekle
     console.log('👨‍⚕️ Doktorlar ekleniyor...');
     for (const doctor of usersData.doctors) {
       await prisma.doctor.create({
@@ -46,7 +42,6 @@ async function seedDatabase() {
     }
     console.log(`✅ ${usersData.doctors.length} doktor eklendi\n`);
 
-    // Randevuları ekle
     console.log('📅 Randevular ekleniyor...');
     for (const appointment of appointmentsData.appointments) {
       await prisma.appointment.create({
@@ -60,7 +55,6 @@ async function seedDatabase() {
 
     console.log('🎉 Database seeding başarıyla tamamlandı!\n');
     
-    // Özet bilgi
     const patientCount = await prisma.patient.count();
     const doctorCount = await prisma.doctor.count();
     const appointmentCount = await prisma.appointment.count();
@@ -78,6 +72,4 @@ async function seedDatabase() {
   }
 }
 
-// Script çalıştır
 seedDatabase();
-

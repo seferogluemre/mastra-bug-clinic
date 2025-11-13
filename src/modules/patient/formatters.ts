@@ -6,9 +6,6 @@ export function formatPatient(patient: Patient): FormattedPatient {
   return formatPatient(patient);
 }
 
-/**
- * Hasta listesi formatı
- */
 export function formatPatients(patients: Patient[]): FormattedPatient[] {
   return patients.map(formatPatient);
 }

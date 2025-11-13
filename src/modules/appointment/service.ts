@@ -1,13 +1,9 @@
 import prisma from '../../core/prisma';
-import type { CreateAppointmentDto, UpdateAppointmentDto, ListAppointmentsDto } from './appointment.dto';
-import { formatAppointment, formatAppointmentWithDetails, formatAppointmentsWithDetails } from './appointment.formatter';
+import type { CreateAppointmentDto, UpdateAppointmentDto, ListAppointmentsDto } from './dtos';
+import { formatAppointment, formatAppointmentWithDetails, formatAppointmentsWithDetails } from './formatters';
 
 export class AppointmentService {
-  /**
-   * Yeni randevu oluştur
-   */
   async create(data: CreateAppointmentDto) {
-    // Hasta var mı kontrol et
     const patient = await prisma.patient.findUnique({
       where: { id: data.patientId },
     });
@@ -16,7 +12,6 @@ export class AppointmentService {
       throw new Error('Hasta bulunamadı');
     }
 
-    // Doktor var mı kontrol et
     const doctor = await prisma.doctor.findUnique({
       where: { id: data.doctorId },
     });
@@ -25,12 +20,10 @@ export class AppointmentService {
       throw new Error('Doktor bulunamadı');
     }
 
-    // Randevu çakışması var mı kontrol et
     const appointmentDate = new Date(data.date);
     const duration = data.duration || 30;
     const appointmentEndTime = new Date(appointmentDate.getTime() + duration * 60000);
 
-    // Doktorun bu tarihte tüm randevularını getir
     const existingAppointments = await prisma.appointment.findMany({
       where: {
         doctorId: data.doctorId,
@@ -44,7 +37,6 @@ export class AppointmentService {
       },
     });
 
-    // Çakışma kontrolü
     for (const existing of existingAppointments) {
       const existingEndTime = new Date(existing.date.getTime() + existing.duration * 60000);
       
@@ -65,7 +57,6 @@ export class AppointmentService {
       }
     }
 
-    // Randevu oluştur
     const appointment = await prisma.appointment.create({
       data: {
         patientId: data.patientId,
@@ -83,9 +74,6 @@ export class AppointmentService {
     return formatAppointmentWithDetails(appointment);
   }
 
-  /**
-   * Randevuları listele
-   */
   async list(filters: ListAppointmentsDto = {}) {
     const where: any = {};
 
@@ -125,9 +113,6 @@ export class AppointmentService {
     return formatAppointmentsWithDetails(appointments);
   }
 
-  /**
-   * Tek randevu getir
-   */
   async getById(id: string) {
     const appointment = await prisma.appointment.findUnique({
       where: { id },
@@ -144,9 +129,6 @@ export class AppointmentService {
     return formatAppointmentWithDetails(appointment);
   }
 
-  /**
-   * Randevu güncelle
-   */
   async update(id: string, data: UpdateAppointmentDto) {
     const existingAppointment = await prisma.appointment.findUnique({
       where: { id },
@@ -156,7 +138,6 @@ export class AppointmentService {
       throw new Error('Randevu bulunamadı');
     }
 
-    // Eğer tarih değiştiriliyorsa, çakışma kontrolü yap
     if (data.date) {
       const appointmentDate = new Date(data.date);
       const conflictingAppointment = await prisma.appointment.findFirst({
@@ -195,9 +176,6 @@ export class AppointmentService {
     return formatAppointmentWithDetails(updatedAppointment);
   }
 
-  /**
-   * Randevu sil (iptal et)
-   */
   async delete(id: string) {
     const appointment = await prisma.appointment.findUnique({
       where: { id },
@@ -207,7 +185,6 @@ export class AppointmentService {
       throw new Error('Randevu bulunamadı');
     }
 
-    // Soft delete yerine status'u cancelled yap
     await prisma.appointment.update({
       where: { id },
       data: { status: 'cancelled' },
