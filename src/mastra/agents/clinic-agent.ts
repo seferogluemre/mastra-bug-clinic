@@ -1,6 +1,4 @@
 import { Agent } from '@mastra/core/agent';
-import { Memory } from '@mastra/memory';
-import { LibSQLStore } from '@mastra/libsql';
 import { clinicModel } from '../../core/llm';
 import {
   createAppointmentTool,
@@ -80,9 +78,10 @@ export const clinicAgent = new Agent({
     getPatientStatsTool,
     findPatientByEmailTool,
   },
-  memory: new Memory({
-    storage: new LibSQLStore({
-      url: 'file:../mastra.db', 
-    }),
-  }),
+  // Memory geçici olarak kapatıldı (test için)
+  // memory: new Memory({
+  //   storage: new LibSQLStore({
+  //     url: 'file:../mastra.db', 
+  //   }),
+  // }),
 });

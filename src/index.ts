@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { chatSchema } from './schemas';
 import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
+import { generateText } from 'ai';
 
 const app = new Elysia()
 .use(swagger())
@@ -28,6 +29,10 @@ const app = new Elysia()
       const validatedBody = chatSchema.parse(body);
       const { message, threadId, userId } = validatedBody;
       
+      // Her istekte benzersiz threadId oluştur (memory problemi için)
+      const uniqueThreadId = threadId || `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const uniqueUserId = userId || 'default-user';
+      
       const agent = mastra.getAgent('clinicAgent');
       if (!agent) {
         set.status = 500;
@@ -51,34 +56,40 @@ const app = new Elysia()
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
-          console.log('🚀 Agent generate başlatılıyor...', { attempt: attempt + 1 });
+          console.log('🚀 Direkt AI SDK kullanılıyor...', { attempt: attempt + 1 });
           
-          const response = await agent.generate(
-            [
+          // Mastra agent'ı bypass et, direkt AI SDK kullan
+          const result = await generateText({
+            model: agent.model,
+            messages: [
+              {
+                role: 'system',
+                content: `Sen bir klinik yönetim asistanısın. Türkçe konuş, profesyonel ve yardımsever ol.
+Bugün: ${todayStr} (${todayISO})
+
+Kısa ve öz cevaplar ver. Emoji kullan 😊 📅 👨‍⚕️ ✅
+Her zaman nazik ve yardımsever ol.`
+              },
               {
                 role: 'user',
-                content: `BUGÜN: ${todayStr} (${todayISO})
-
-Kullanıcı Mesajı: ${message}`,
+                content: message,
               },
             ],
-            {
-              resourceId: userId || 'default-user',
-              threadId: threadId || 'default-thread',
-              toolChoice: 'auto',
-            }
-          );
+            temperature: 0.7,
+            maxTokens: 500,
+          });
 
-          console.log('🤖 Agent Response TAM OBJE:', JSON.stringify(response, null, 2));
-          console.log('🤖 Agent Response text:', response?.text);
-          console.log('🤖 Agent Response keys:', Object.keys(response || {}));
+          console.log('✅ AI SDK yanıt aldı');
+          console.log('📝 Response text:', result.text || 'BOŞ');
+          console.log('📏 Text uzunluğu:', result.text.length);
+          console.log('🔢 Tokens:', result.usage);
 
           return {
             success: true,
             data: {
-              message: response?.text || response?.content || 'Agent yanıt vermedi',
-              threadId: threadId || 'default-thread',
-              userId: userId || 'default-user',
+              message: result.text || 'Agent yanıt vermedi. Lütfen tekrar deneyin.',
+              threadId: uniqueThreadId,
+              userId: uniqueUserId,
             },
           };
         } catch (err) {

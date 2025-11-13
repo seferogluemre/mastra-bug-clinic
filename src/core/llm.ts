@@ -6,4 +6,4 @@ export const openaiModel = (modelName: string = 'gpt-4o') => {
   });
 };
 
-export const clinicModel = openaiModel('gpt-4o-mini');
+export const clinicModel = openaiModel('gpt-4o');
