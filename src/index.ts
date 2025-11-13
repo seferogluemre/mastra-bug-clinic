@@ -5,6 +5,10 @@ import { chatSchema } from './schemas';
 import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
 import { generateText } from 'ai';
+import type { CoreMessage } from 'ai';
+import { aiCreateAppointmentTool, aiListAppointmentsTool, aiUpdateAppointmentTool } from './mastra/tools/appointment-tools';
+
+const conversationHistory = new Map<string, CoreMessage[]>();
 
 const app = new Elysia()
 .use(swagger())
@@ -23,13 +27,12 @@ const app = new Elysia()
   }))
   .post('/api/chat', async ({ body, set }) => {
     const MAX_RETRIES = 3;
-    const INITIAL_DELAY = 1000; // 1 saniye
+    const INITIAL_DELAY = 1000;
 
     try {
       const validatedBody = chatSchema.parse(body);
       const { message, threadId, userId } = validatedBody;
       
-      // Her istekte benzersiz threadId oluştur (memory problemi için)
       const uniqueThreadId = threadId || `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const uniqueUserId = userId || 'default-user';
       
@@ -49,7 +52,7 @@ const app = new Elysia()
         month: 'long', 
         day: 'numeric' 
       });
-      const todayISO = today.toISOString().split('T')[0]; // YYYY-MM-DD
+        const todayISO = today.toISOString().split('T')[0];
 
       console.log('📅 Context:', { todayStr, todayISO, message });
 
@@ -58,31 +61,72 @@ const app = new Elysia()
         try {
           console.log('🚀 Direkt AI SDK kullanılıyor...', { attempt: attempt + 1 });
           
-          // Mastra agent'ı bypass et, direkt AI SDK kullan
-          const result = await generateText({
-            model: agent.model,
-            messages: [
-              {
-                role: 'system',
-                content: `Sen bir klinik yönetim asistanısın. Türkçe konuş, profesyonel ve yardımsever ol.
+          let history = conversationHistory.get(uniqueThreadId) || [];
+          
+          const systemMessage: CoreMessage = {
+            role: 'system',
+            content: `Sen bir klinik yönetim asistanısın. Türkçe konuş, profesyonel ve yardımsever ol.
 Bugün: ${todayStr} (${todayISO})
 
-Kısa ve öz cevaplar ver. Emoji kullan 😊 📅 👨‍⚕️ ✅
-Her zaman nazik ve yardımsever ol.`
-              },
-              {
-                role: 'user',
-                content: message,
-              },
-            ],
-            temperature: 0.7,
-            maxTokens: 500,
-          });
+🛠️ KULLANILABILIR ARAÇLAR:
+1. createAppointment - Randevu oluştur (tarih ISO format: YYYY-MM-DDTHH:mm:ss.000Z, notes opsiyonel)
+2. listAppointments - Randevuları listele
+3. updateAppointment - Randevu güncelle (appointmentId, date, status, notes, duration)
 
+📋 RANDEVU OLUŞTURMA:
+- Kullanıcı "14 kasım saat 12:00" derse → "2025-11-14T12:00:00.000Z" formatına çevir
+- Kullanıcının şikayetini/notunu MUTLAKA notes parametresine ekle
+- Örnek: "boğaz ağrısı için randevu" → notes: "boğaz ağrısı"
+- Randevu oluşturduktan sonra başarılı mesajı göster
+
+💬 YANIT TARZI:
+- Kısa ve öz cevaplar ver
+- Emoji kullan 😊 📅 👨‍⚕️ ✅
+- Her zaman nazik ve yardımsever ol
+- Kullanıcının önceki mesajlarını hatırla ve context'i koru`
+          };
+          
+          const userMessage: CoreMessage = {
+            role: 'user',
+            content: message,
+          };
+          
+          const allMessages: CoreMessage[] = [systemMessage, ...history, userMessage];
+          
+          const result = await generateText({
+            model: agent.model as any,
+            messages: allMessages,
+            tools: {
+              createAppointment: aiCreateAppointmentTool,
+              listAppointments: aiListAppointmentsTool,
+              updateAppointment: aiUpdateAppointmentTool,
+            },
+            temperature: 0.7,
+            maxTokens: 1000,
+          });
+          
           console.log('✅ AI SDK yanıt aldı');
           console.log('📝 Response text:', result.text || 'BOŞ');
           console.log('📏 Text uzunluğu:', result.text.length);
           console.log('🔢 Tokens:', result.usage);
+          
+          // Tool calls varsa logla
+          if (result.toolCalls && result.toolCalls.length > 0) {
+            console.log('🛠️  Tool calls:', JSON.stringify(result.toolCalls, null, 2));
+          }
+          if (result.toolResults && result.toolResults.length > 0) {
+            console.log('📊 Tool results:', JSON.stringify(result.toolResults, null, 2));
+          }
+          
+          const assistantMessage: CoreMessage = {
+            role: 'assistant',
+            content: result.text,
+          };
+          
+          history.push(userMessage, assistantMessage);
+          conversationHistory.set(uniqueThreadId, history);
+          
+          console.log('💾 History güncellendi:', { threadId: uniqueThreadId, messageCount: history.length });
 
           return {
             success: true,
@@ -115,7 +159,6 @@ Her zaman nazik ve yardımsever ol.`
     } catch (error) {
       console.error('❌ Chat error:', error);
 
-      // Rate limit hatası
       if (error instanceof Error && 
           (error.message.toLowerCase().includes('rate limit') || 
            error.message.toLowerCase().includes('429') ||
@@ -129,7 +172,6 @@ Her zaman nazik ve yardımsever ol.`
         };
       }
 
-      // Validation hatası
       if (error instanceof z.ZodError) {
         set.status = 400;
         return {
@@ -139,7 +181,6 @@ Her zaman nazik ve yardımsever ol.`
         };
       }
 
-      // Authentication hatası
       if (error instanceof Error && 
           (error.message.includes('API key') || 
            error.message.includes('Unauthorized') ||
@@ -151,7 +192,6 @@ Her zaman nazik ve yardımsever ol.`
         };
       }
 
-      // Genel hata
       set.status = 500;
       return {
         success: false,

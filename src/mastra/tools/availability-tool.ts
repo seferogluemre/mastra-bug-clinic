@@ -5,12 +5,12 @@ import prisma from '../../core/prisma';
 const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Yılmaz
 
 export const checkDoctorAvailabilityTool = createTool({
-  id: 'check-doctor-availability',
+  id: 'checkDoctorAvailability',
   description: 'Checks doctor availability for a specific date and shows available time slots. Use this when user asks about available times.',
   inputSchema: z.object({
     date: z.string().describe('Date to check availability (YYYY-MM-DD format, e.g., 2024-10-20)'),
     doctorId: z.string().uuid().optional().describe('Doctor ID (optional, uses default)'),
-  }),
+  }).strict(),
   outputSchema: z.object({
     date: z.string(),
     doctorName: z.string(),

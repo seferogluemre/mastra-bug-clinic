@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { patientService } from '../../modules/patient/service';
 
 export const createPatientTool = createTool({
-  id: 'create-patient',
+  id: 'createPatient',
   description: 'Register a new patient in the system. Use when user wants to create profile or register.',
   inputSchema: z.object({
     name: z.string().min(2).describe('Patient full name'),
@@ -11,7 +11,7 @@ export const createPatientTool = createTool({
     email: z.string().email().optional().describe('Email address'),
     dateOfBirth: z.string().datetime().optional().describe('Date of birth (ISO format)'),
     address: z.string().optional().describe('Address'),
-  }),
+  }).strict(),
   outputSchema: z.object({
     id: z.string(),
     name: z.string(),
@@ -41,11 +41,11 @@ export const createPatientTool = createTool({
  * Tool: Hasta Bilgilerini Getir
  */
 export const getPatientTool = createTool({
-  id: 'get-patient',
+  id: 'getPatient',
   description: 'Get patient information by ID',
   inputSchema: z.object({
     patientId: z.string().uuid().describe('Patient ID'),
-  }),
+  }).strict(),
   outputSchema: z.object({
     id: z.string(),
     name: z.string(),
@@ -77,11 +77,11 @@ export const getPatientTool = createTool({
  * Tool: Email ile Hasta Bul
  */
 export const findPatientByEmailTool = createTool({
-  id: 'find-patient-by-email',
+  id: 'findPatientByEmail',
   description: 'Find patient by email address. Returns null if not found.',
   inputSchema: z.object({
     email: z.string().email().describe('Patient email address'),
-  }),
+  }).strict(),
   outputSchema: z.union([
     z.object({
       id: z.string(),
@@ -109,13 +109,13 @@ export const findPatientByEmailTool = createTool({
  * Tool: Hasta Ara
  */
 export const searchPatientTool = createTool({
-  id: 'search-patient',
+  id: 'searchPatient',
   description: 'Search patients by name, phone, or email',
   inputSchema: z.object({
     name: z.string().optional().describe('Search by name'),
     phone: z.string().optional().describe('Search by phone'),
     email: z.string().optional().describe('Search by email'),
-  }),
+  }).strict(),
   outputSchema: z.array(z.object({
     id: z.string(),
     name: z.string(),
@@ -136,7 +136,7 @@ export const searchPatientTool = createTool({
  * Tool: Hasta Bilgilerini Güncelle
  */
 export const updatePatientTool = createTool({
-  id: 'update-patient',
+  id: 'updatePatient',
   description: 'Update patient information',
   inputSchema: z.object({
     patientId: z.string().uuid().describe('Patient ID'),
@@ -144,7 +144,7 @@ export const updatePatientTool = createTool({
     phone: z.string().optional().describe('New phone'),
     email: z.string().email().optional().describe('New email'),
     address: z.string().optional().describe('New address'),
-  }),
+  }).strict(),
   outputSchema: z.object({
     id: z.string(),
     name: z.string(),
@@ -168,11 +168,11 @@ export const updatePatientTool = createTool({
  * Tool: Hasta İstatistikleri
  */
 export const getPatientStatsTool = createTool({
-  id: 'get-patient-stats',
+  id: 'getPatientStats',
   description: 'Get patient statistics (total appointments, upcoming, completed)',
   inputSchema: z.object({
     patientId: z.string().uuid().describe('Patient ID'),
-  }),
+  }).strict(),
   outputSchema: z.object({
     patient: z.object({
       id: z.string(),
