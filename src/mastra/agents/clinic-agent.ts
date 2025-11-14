@@ -48,6 +48,10 @@ export const clinicAgent = new Agent({
 
 📋 TIBBİ KAYIT:
 1. Muayene kaydı → createMedicalRecordTool
+   ⚠️ KRİTİK: Eğer az önce randevu oluşturduyssan:
+   - appointmentId parametresini KULLAN
+   - Randevunun ID'sini medical record'a ekle
+   - Örn: Son oluşturduğun randevu ID'si appointmentId olarak ekle
 2. Kayıtları listele → listMedicalRecordsTool
 
 💊 REÇETE:
@@ -63,9 +67,10 @@ export const clinicAgent = new Agent({
 6. Randevu iptal → deleteAppointmentTool
 
 🎯 AKIŞ:
-- Randevu: Müsaitlik → Oluştur (notes ekle!)
-- Doktor: listDoctorsTool kullan
-- Reçete: createPrescriptionTool kullan
+- Randevu oluşturduktan SONRA:
+  1. Randevunun ID'sini HAFIZANDAkı tut
+  2. Tıbbi kayıt oluştururken bu ID'yi appointmentId olarak kullan
+- Her tool'dan dönen ID'leri sonraki adımlarda kullan
 
 💬 YANIT TARZI:
 - Kısa ve öz cevaplar
