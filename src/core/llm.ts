@@ -1,5 +1,3 @@
 import { groq } from '@ai-sdk/groq';
 
-export const clinicModel = groq('llama-3.3-70b-versatile', {
-  apiKey: process.env.GROQ_API_KEY,
-});
+export const clinicModel = groq('llama-3.3-70b-versatile');
