@@ -12,33 +12,18 @@ import {
   createPatientTool,
   getPatientTool,
   searchPatientTool,
-  updatePatientTool,
-  getPatientStatsTool,
-  findPatientByEmailTool,
 } from '../tools/patient-tools';
 import {
-  createDoctorTool,
-  getDoctorTool,
   listDoctorsTool,
   searchDoctorTool,
-  updateDoctorTool,
-  getDoctorStatsTool,
-  getDoctorScheduleTool,
 } from '../tools/doctor-tools';
 import {
   createMedicalRecordTool,
-  getMedicalRecordTool,
   listMedicalRecordsTool,
-  getPatientMedicalHistoryTool,
-  updateMedicalRecordTool,
 } from '../tools/medical-record-tools';
 import {
   createPrescriptionTool,
-  getPrescriptionTool,
   listPrescriptionsTool,
-  getPatientPrescriptionsTool,
-  updatePrescriptionTool,
-  cancelPrescriptionTool,
 } from '../tools/prescription-tools';
 
 export const clinicAgent = new Agent({
@@ -53,118 +38,34 @@ export const clinicAgent = new Agent({
 - ISO 8601 format kullan: "2024-11-14T14:00:00.000Z"
 
 👤 HASTA İŞLEMLERİ:
-1. Yeni hasta kaydı → createPatientTool (isim, telefon, email zorunlu değil)
-2. Hasta arama → searchPatientTool (isim/telefon/email ile)
-3. Hasta bilgileri → getPatientTool (ID ile)
-4. Hasta güncelleme → updatePatientTool
-5. İstatistikler → getPatientStatsTool
+1. Yeni hasta → createPatientTool
+2. Hasta ara → searchPatientTool
+3. Hasta bilgisi → getPatientTool
 
 👨‍⚕️ DOKTOR İŞLEMLERİ:
-1. Doktor listesi → listDoctorsTool (uzmanlığa göre filtrele)
-2. Doktor arama → searchDoctorTool (isim/uzmanlık/email ile)
-3. Doktor bilgileri → getDoctorTool (ID ile)
-4. Doktor programı → getDoctorScheduleTool (tarih ile)
-5. Doktor istatistikleri → getDoctorStatsTool
-6. Yeni doktor ekle → createDoctorTool (admin işlemi)
+1. Doktor listesi → listDoctorsTool
+2. Doktor ara → searchDoctorTool
 
-📋 TIBBİ KAYIT İŞLEMLERİ:
-1. Muayene kaydı oluştur → createMedicalRecordTool
-   ✅ ÖRNEKLER:
-   - "Ayşe Yılmaz için muayene kaydı oluştur..." 
-   - "Hasta muayene edildi, şikayet baş ağrısı..."
-   - Mutlaka: patientId, doctorId, chiefComplaint
-   - Opsiyonel: vital signs (tansiyon, nabız, ateş, kilo, boy)
-   
-2. Hasta geçmişi → getPatientMedicalHistoryTool
-   ✅ ÖRNEK: "Ayşe Yılmazın tıbbi geçmişini göster"
-   
-3. Tıbbi kayıt detayı → getMedicalRecordTool
-4. Tıbbi kayıtları listele → listMedicalRecordsTool
-5. Tıbbi kayıt güncelle → updateMedicalRecordTool
+📋 TIBBİ KAYIT:
+1. Muayene kaydı → createMedicalRecordTool
+2. Kayıtları listele → listMedicalRecordsTool
 
-💊 REÇETE İŞLEMLERİ:
-1. Reçete yaz → createPrescriptionTool (MUTLAKA KULLAN)
-   ⚠️ KRİTİK: Kullanıcı "reçete yaz" dediğinde BU TOOL'U KULLAN!
-   
-   ✅ ÖRNEKLER:
-   - "Ayşe Yılmaz için reçete yaz..."
-   - "Reçete yazılsın: Parol 500mg..."
-   - "İlaç reçetesi oluştur..."
-   
-   Zorunlu parametreler:
-   - patientId, doctorId
-   - medications: [{ name, dosage, frequency, duration }]
-   
-   Örnek medication objesi:
-   {
-     name: "Parol",
-     dosage: "500mg",
-     frequency: "Günde 3 kez",
-     duration: "5 gün"
-   }
-   
-2. Hasta reçeteleri → getPatientPrescriptionsTool
-   ✅ ÖRNEK: "Ayşe Yılmazın aktif reçetelerini göster"
-   
-3. Reçete detayı → getPrescriptionTool
-4. Reçeteleri listele → listPrescriptionsTool
-5. Reçete güncelle → updatePrescriptionTool
-6. Reçete iptal et → cancelPrescriptionTool
+💊 REÇETE:
+1. Reçete yaz → createPrescriptionTool
+2. Reçeteleri listele → listPrescriptionsTool
 
-📋 RANDEVU İŞLEMLERİ:
-1. Müsaitlik kontrolü → checkDoctorAvailabilityTool
-   - Sadece date parametresi gönderin (YYYY-MM-DD formatında)
-   - Doktor otomatik seçilir
-2. Randevu oluştur → createAppointmentTool 
-   ⚠️ KRİTİK: notes parametresini MUTLAKA kullan ve kullanıcının şikayetini/sağlık sorununun ekle!
-   - date: ISO format tarih (zorunlu)
-   - notes: Kullanıcının söylediği SPESIFIK şikayet/sağlık sorunu
-   
-   ❌ YANLIŞ: "kullanıcı randevu almak istedi" (çok genel, kullanma!)
-   ✅ DOĞRU örnekler:
-   - "boğaz ağrım var" → notes: "boğaz ağrısı"
-   - "başım ağrıyor" → notes: "baş ağrısı"  
-   - "grip oldum" → notes: "grip"
-   - "kontrol için" → notes: "kontrol muayenesi"
-   
+📋 RANDEVU:
+1. Müsaitlik → checkDoctorAvailabilityTool
+2. Randevu oluştur → createAppointmentTool (notes zorunlu!)
 3. Randevuları listele → listAppointmentsTool
 4. Randevu detayı → getAppointmentTool
-5. Randevu güncelle → updateAppointmentTool (tarih/durum değişikliği)
+5. Randevu güncelle → updateAppointmentTool
 6. Randevu iptal → deleteAppointmentTool
 
-🎯 KONUŞMA AKIŞI:
-
-1️⃣ RANDEVU AKIŞI:
-   - ÖNCELİKLE: Kullanıcının şikayetini/sağlık sorununu belirle
-   - Müsait saatleri göster (checkDoctorAvailabilityTool)
-   - Kullanıcı saat seçsin
-   - Randevu oluştururken:
-     * date: Belirlenen tarihi ISO formatında gönder
-     * notes: İLK MESAJDAN belirlediğin SPESIFIK şikayet/sağlık sorunu (MUTLAKA ekle!)
-     
-     📝 NOT BELİRLEME KURALLARI:
-     - Kullanıcının ilk mesajındaki sağlık şikayetini al
-     - "randevu almak istedi" gibi genel ifadeler KULLANMA
-     - Şikayeti kısa ve net yaz (örn: "boğaz ağrısı", "baş ağrısı", "grip")
-     
-2️⃣ MUAYENE SONRASI AKIŞ:
-   a) Tıbbi kayıt oluştur → createMedicalRecordTool
-      - Şikayet, tanı, vital signs ekle
-      
-   b) Reçete yaz → createPrescriptionTool (kullanıcı isterse)
-      - En az 1 ilaç ekle
-      - İlaç detaylarını tam gir
-      
-3️⃣ DOKTOR SORULARI:
-   - "Hangi doktorlar var?" → listDoctorsTool KULLAN
-   - "Kardiyoloji doktoru?" → listDoctorsTool (specialty: "Kardiyoloji")
-   - "Dr. X'in programı?" → getDoctorScheduleTool KULLAN
-   
-4️⃣ HASTA GEÇMİŞİ:
-   - "Tıbbi geçmiş" → getPatientMedicalHistoryTool KULLAN
-   - "Reçeteler" → getPatientPrescriptionsTool KULLAN
-   
-5️⃣ Genel sohbet için tool kullanma, sadece konuş
+🎯 AKIŞ:
+- Randevu: Müsaitlik → Oluştur (notes ekle!)
+- Doktor: listDoctorsTool kullan
+- Reçete: createPrescriptionTool kullan
 
 💬 YANIT TARZI:
 - Kısa ve öz cevaplar
@@ -178,41 +79,21 @@ export const clinicAgent = new Agent({
 - Hata olursa özür dile ve çözüm sun
 `,
   tools: {
-    // Appointment tools
+    checkDoctorAvailabilityTool,
     createAppointmentTool,
     listAppointmentsTool,
     getAppointmentTool,
     updateAppointmentTool,
     deleteAppointmentTool,
-    checkDoctorAvailabilityTool,
-    // Patient tools
     createPatientTool,
     getPatientTool,
     searchPatientTool,
-    updatePatientTool,
-    getPatientStatsTool,
-    findPatientByEmailTool,
-    // Doctor tools
-    createDoctorTool,
-    getDoctorTool,
     listDoctorsTool,
     searchDoctorTool,
-    updateDoctorTool,
-    getDoctorStatsTool,
-    getDoctorScheduleTool,
-    // Medical record tools
     createMedicalRecordTool,
-    getMedicalRecordTool,
     listMedicalRecordsTool,
-    getPatientMedicalHistoryTool,
-    updateMedicalRecordTool,
-    // Prescription tools
     createPrescriptionTool,
-    getPrescriptionTool,
     listPrescriptionsTool,
-    getPatientPrescriptionsTool,
-    updatePrescriptionTool,
-    cancelPrescriptionTool,
   },
   // Memory geçici olarak kapatıldı (test için)
   // memory: new Memory({
