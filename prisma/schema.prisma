@@ -8,30 +8,34 @@ datasource db {
 }
 
 model Patient {
-  id           String        @id @default(uuid())
-  name         String
-  phone        String?
-  email        String?       @unique
-  dateOfBirth  DateTime?
-  address      String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id             String          @id @default(uuid())
+  name           String
+  phone          String?
+  email          String?         @unique
+  dateOfBirth    DateTime?
+  address        String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   
-  appointments Appointment[]
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  prescriptions  Prescription[]
 
   @@map("patients")
 }
 
 model Doctor {
-  id           String        @id @default(uuid())
-  name         String
-  specialty    String
-  phone        String?
-  email        String?       @unique
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id             String          @id @default(uuid())
+  name           String
+  specialty      String
+  phone          String?
+  email          String?         @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
   
-  appointments Appointment[]
+  appointments   Appointment[]
+  medicalRecords MedicalRecord[]
+  prescriptions  Prescription[]
 
   @@map("doctors")
 }
@@ -41,18 +45,98 @@ model Appointment {
   patientId   String
   doctorId    String
   date        DateTime
-  duration    Int      @default(30) // dakika cinsinden
-  status      String   @default("pending") // pending, confirmed, cancelled, completed
+  duration    Int      @default(30) 
+  status      String   @default("pending") 
   notes       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
-  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
-  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patient        Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor         Doctor          @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  medicalRecords MedicalRecord[]
   
   @@index([patientId])
   @@index([doctorId])
   @@index([date])
   @@index([status])
   @@map("appointments")
+}
+
+model MedicalRecord {
+  id            String   @id @default(uuid())
+  patientId     String
+  doctorId      String
+  appointmentId String?
+  
+  chiefComplaint String   @db.Text 
+  diagnosis      String?  @db.Text  
+  symptoms       String?  @db.Text  
+  notes          String?  @db.Text 
+  treatment      String?  @db.Text 
+  
+  bloodPressure  String?  
+  heartRate      Int?     
+  temperature    Float?   
+  weight         Float?   
+  height         Float?   
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  patient        Patient       @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor         Doctor        @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  appointment    Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  prescriptions  Prescription[]
+  
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([appointmentId])
+  @@index([createdAt])
+  @@map("medical_records")
+}
+
+model Prescription {
+  id              String    @id @default(uuid())
+  patientId       String
+  doctorId        String
+  medicalRecordId String?
+  
+  diagnosis       String?   @db.Text 
+  notes           String?   @db.Text 
+  validUntil      DateTime? 
+  status          String    @default("active") 
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  patient         Patient        @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor          Doctor         @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  medicalRecord   MedicalRecord? @relation(fields: [medicalRecordId], references: [id], onDelete: SetNull)
+  medications     Medication[]
+  
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([medicalRecordId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("prescriptions")
+}
+
+model Medication {
+  id             String   @id @default(uuid())
+  prescriptionId String
+  
+  name           String   
+  dosage         String   
+  frequency      String   
+  duration       String   
+  instructions   String?  @db.Text 
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  
+  @@index([prescriptionId])
+  @@map("medications")
 }

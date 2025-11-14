@@ -2,7 +2,7 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import prisma from '../../core/prisma';
 
-const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Yılmaz
+const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; 
 
 export const checkDoctorAvailabilityTool = createTool({
   id: 'checkDoctorAvailability',

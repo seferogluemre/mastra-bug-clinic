@@ -16,6 +16,30 @@ import {
   getPatientStatsTool,
   findPatientByEmailTool,
 } from '../tools/patient-tools';
+import {
+  createDoctorTool,
+  getDoctorTool,
+  listDoctorsTool,
+  searchDoctorTool,
+  updateDoctorTool,
+  getDoctorStatsTool,
+  getDoctorScheduleTool,
+} from '../tools/doctor-tools';
+import {
+  createMedicalRecordTool,
+  getMedicalRecordTool,
+  listMedicalRecordsTool,
+  getPatientMedicalHistoryTool,
+  updateMedicalRecordTool,
+} from '../tools/medical-record-tools';
+import {
+  createPrescriptionTool,
+  getPrescriptionTool,
+  listPrescriptionsTool,
+  getPatientPrescriptionsTool,
+  updatePrescriptionTool,
+  cancelPrescriptionTool,
+} from '../tools/prescription-tools';
 
 export const clinicAgent = new Agent({
   name: 'Clinic Assistant',
@@ -34,6 +58,29 @@ export const clinicAgent = new Agent({
 3. Hasta bilgileri → getPatientTool (ID ile)
 4. Hasta güncelleme → updatePatientTool
 5. İstatistikler → getPatientStatsTool
+
+👨‍⚕️ DOKTOR İŞLEMLERİ:
+1. Doktor listesi → listDoctorsTool (uzmanlığa göre filtrele)
+2. Doktor arama → searchDoctorTool (isim/uzmanlık/email ile)
+3. Doktor bilgileri → getDoctorTool (ID ile)
+4. Doktor programı → getDoctorScheduleTool (tarih ile)
+5. Doktor istatistikleri → getDoctorStatsTool
+6. Yeni doktor ekle → createDoctorTool (admin işlemi)
+
+📋 TIBBİ KAYIT İŞLEMLERİ:
+1. Muayene kaydı oluştur → createMedicalRecordTool (vital signs + tanı)
+2. Tıbbi kayıt detayı → getMedicalRecordTool
+3. Tıbbi kayıtları listele → listMedicalRecordsTool
+4. Hasta geçmişi → getPatientMedicalHistoryTool
+5. Tıbbi kayıt güncelle → updateMedicalRecordTool
+
+💊 REÇETE İŞLEMLERİ:
+1. Reçete yaz → createPrescriptionTool (en az 1 ilaç zorunlu)
+2. Reçete detayı → getPrescriptionTool
+3. Reçeteleri listele → listPrescriptionsTool
+4. Hasta reçeteleri → getPatientPrescriptionsTool (aktif/tüm)
+5. Reçete güncelle → updatePrescriptionTool
+6. Reçete iptal et → cancelPrescriptionTool
 
 📋 RANDEVU İŞLEMLERİ:
 1. Müsaitlik kontrolü → checkDoctorAvailabilityTool
@@ -93,18 +140,41 @@ export const clinicAgent = new Agent({
 - Hata olursa özür dile ve çözüm sun
 `,
   tools: {
+    // Appointment tools
     createAppointmentTool,
     listAppointmentsTool,
     getAppointmentTool,
     updateAppointmentTool,
     deleteAppointmentTool,
     checkDoctorAvailabilityTool,
+    // Patient tools
     createPatientTool,
     getPatientTool,
     searchPatientTool,
     updatePatientTool,
     getPatientStatsTool,
     findPatientByEmailTool,
+    // Doctor tools
+    createDoctorTool,
+    getDoctorTool,
+    listDoctorsTool,
+    searchDoctorTool,
+    updateDoctorTool,
+    getDoctorStatsTool,
+    getDoctorScheduleTool,
+    // Medical record tools
+    createMedicalRecordTool,
+    getMedicalRecordTool,
+    listMedicalRecordsTool,
+    getPatientMedicalHistoryTool,
+    updateMedicalRecordTool,
+    // Prescription tools
+    createPrescriptionTool,
+    getPrescriptionTool,
+    listPrescriptionsTool,
+    getPatientPrescriptionsTool,
+    updatePrescriptionTool,
+    cancelPrescriptionTool,
   },
   // Memory geçici olarak kapatıldı (test için)
   // memory: new Memory({
