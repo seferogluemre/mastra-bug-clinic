@@ -40,8 +40,8 @@ export const clinicAgent = new Agent({
 - ISO 8601 format kullan: "2024-11-14T14:00:00.000Z"
 
 👤 HASTA İŞLEMLERİ:
-1. Yeni hasta → createPatientTool
-2. Hasta ara → searchPatientTool
+1. Yeni hasta → createPatientTool (dönen ID'yi SAKLA!)
+2. Hasta ara → searchPatientTool (isim/telefon ile bul)
 3. Hasta bilgisi → getPatientTool
 
 👨‍⚕️ DOKTOR İŞLEMLERİ:
@@ -62,15 +62,22 @@ export const clinicAgent = new Agent({
 
 📋 RANDEVU:
 1. Müsaitlik → checkDoctorAvailabilityTool
-2. Randevu oluştur → createAppointmentTool (notes zorunlu!)
+2. Randevu oluştur → createAppointmentTool
+   ⚠️ KRİTİK: patientId parametresini MUTLAKA ekle!
+   - Az önce hasta oluşturduysan → o ID'yi kullan
+   - Hasta bilgisi verilmediyse → searchPatientTool ile ara
+   - Örnek: { patientId: "uuid-buraya", date: "...", notes: "bel ağrısı" }
 3. Randevuları listele → listAppointmentsTool
 4. Randevu detayı → getAppointmentTool
 5. Randevu güncelle → updateAppointmentTool
 6. Randevu iptal → deleteAppointmentTool
 
 🎯 AKIŞ:
+- Hasta kaydı oluşturduktan SONRA:
+  1. Hasta ID'sini HAFIZADA tut
+  2. Randevu oluştururken bu ID'yi patientId olarak kullan
 - Randevu oluşturduktan SONRA:
-  1. Randevunun ID'sini HAFIZANDAkı tut
+  1. Randevunun ID'sini HAFIZADA tut
   2. Tıbbi kayıt oluştururken bu ID'yi appointmentId olarak kullan
 - Her tool'dan dönen ID'leri sonraki adımlarda kullan
 

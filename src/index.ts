@@ -28,8 +28,11 @@ const app = new Elysia()
       const validatedBody = chatSchema.parse(body);
       const { message, threadId, userId } = validatedBody;
 
-      const uniqueThreadId = threadId || `thread-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      // ResourceId: Kullanıcı kimliği (şimdilik frontend'den geliyor, ileride JWT olacak)
       const uniqueUserId = userId || 'default-user';
+      
+      // ThreadId: Kullanıcı bazlı sabit thread (aynı kullanıcı = aynı konuşma)
+      const uniqueThreadId = threadId || `thread-${uniqueUserId}`;
 
       const agent = mastra.getAgent('clinicAgent');
       if (!agent) {

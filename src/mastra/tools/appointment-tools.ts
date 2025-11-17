@@ -7,8 +7,9 @@ const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Y
 
 export const createAppointmentTool = createTool({
   id: 'createAppointment',
-  description: 'Creates appointment. CRITICAL: Extract and include patient\'s SPECIFIC health complaint in notes (e.g., "boğaz ağrısı", "baş ağrısı"). NEVER use generic phrases like "kullanıcı randevu almak istedi". Patient/Doctor auto-assigned.',
+  description: 'Creates appointment. CRITICAL: 1) Use patientId from just created patient OR search by name/phone. 2) Extract patient\'s SPECIFIC health complaint in notes. If patientId not provided, uses default test patient.',
   inputSchema: z.object({
+    patientId: z.string().uuid().optional().describe('Patient ID (UUID). IMPORTANT: Use the ID from just created patient (createPatientTool) or search with searchPatientTool. If not provided, uses default test patient.'),
     date: z.string().datetime().describe('Date in ISO format (YYYY-MM-DDTHH:mm:ss.000Z)'),
     notes: z.string().max(500).optional().describe('Patient\'s SPECIFIC health complaint or symptom from their original message. Examples: "boğaz ağrısı", "baş ağrısı", "grip". DO NOT use generic text like "randevu almak istedi".'),
   }).strict(),
@@ -37,7 +38,7 @@ export const createAppointmentTool = createTool({
   execute: async ({ context }) => {
     try {
       const appointment = await appointmentService.create({
-        patientId: DEFAULT_PATIENT_ID,
+        patientId: context.patientId || DEFAULT_PATIENT_ID,
         doctorId: DEFAULT_DOCTOR_ID,
         date: context.date,
         duration: 30,
