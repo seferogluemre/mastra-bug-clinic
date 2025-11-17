@@ -52,18 +52,20 @@ const app = new Elysia()
       const todayISO = today.toISOString().split('T')[0];
 
       console.log('📅 Context:', { todayStr, todayISO, message });
+      console.log('🔑 IDs:', { uniqueThreadId, uniqueUserId });
 
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
           console.log('🚀 Mastra Agent kullanılıyor...', { attempt: attempt + 1 });
 
-          const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${message}`;
+      const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${message}`;
 
-          const result = await agent.generate(contextMessage, {
-            threadId: uniqueThreadId,
-            maxSteps: 5,
-          });
+      const result = await agent.generate(contextMessage, {
+        threadId: uniqueThreadId,
+        resourceId: uniqueUserId,
+        maxSteps: 5,
+      });
 
           console.log('✅ Agent yanıt aldı');
           console.log('📝 Response text:', result.text || 'BOŞ');
