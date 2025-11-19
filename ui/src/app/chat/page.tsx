@@ -8,7 +8,17 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Plus, MessageSquare, LogOut, Send, User, Bot } from "lucide-react"
+import { Plus, MessageSquare, LogOut, Send, User, Bot, MoreVertical } from "lucide-react"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
 import { fetchClient, API_URL } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
@@ -25,6 +35,12 @@ export default function ChatPage() {
     const [activeThreadId, setActiveThreadId] = useState<string | null>(null)
     const [user, setUser] = useState<{ name: string; email: string } | null>(null)
 
+    // New Thread Dialog State
+    const [isNewThreadDialogOpen, setIsNewThreadDialogOpen] = useState(false)
+    const [newThreadTitle, setNewThreadTitle] = useState("")
+    const [isCreatingThread, setIsCreatingThread] = useState(false)
+
+    // Auth check
     useEffect(() => {
         const token = localStorage.getItem("token")
         const storedUser = localStorage.getItem("user")
@@ -52,19 +68,26 @@ export default function ChatPage() {
         }
     }
 
-    async function createNewThread() {
+    async function createNewThread(e: React.FormEvent) {
+        e.preventDefault()
+        if (!newThreadTitle.trim()) return
+
+        setIsCreatingThread(true)
         try {
             const res = await fetchClient("/api/thread-list", {
                 method: "POST",
-                body: JSON.stringify({ title: "Yeni Sohbet" }),
+                body: JSON.stringify({ title: newThreadTitle }),
             })
             if (res.success) {
                 setThreads([res.data, ...threads])
                 setActiveThreadId(res.data.threadId)
-                // Clear chat messages if needed
+                setIsNewThreadDialogOpen(false)
+                setNewThreadTitle("")
             }
         } catch (error) {
             console.error("Failed to create thread", error)
+        } finally {
+            setIsCreatingThread(false)
         }
     }
 
@@ -92,15 +115,58 @@ export default function ChatPage() {
         router.push("/login")
     }
 
+    // Custom submit handler to prevent refresh
+    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        handleSubmit()
+    }
+
+    const activeThread = threads.find(t => t.threadId === activeThreadId)
+
     return (
         <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
             {/* Sidebar */}
             <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                    <h1 className="font-bold text-xl text-gray-800 dark:text-white">Mastra AI</h1>
-                    <Button variant="ghost" size="icon" onClick={createNewThread}>
-                        <Plus className="h-5 w-5" />
-                    </Button>
+                    <h1 className="font-bold text-xl text-gray-800 dark:text-white">Chatbot Asistan</h1>
+
+                    <Dialog open={isNewThreadDialogOpen} onOpenChange={setIsNewThreadDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <Plus className="h-5 w-5" />
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Yeni Sohbet Başlat</DialogTitle>
+                                <DialogDescription>
+                                    Sohbetiniz için bir başlık belirleyin.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={createNewThread}>
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="title" className="text-right">
+                                            Başlık
+                                        </Label>
+                                        <Input
+                                            id="title"
+                                            value={newThreadTitle}
+                                            onChange={(e) => setNewThreadTitle(e.target.value)}
+                                            className="col-span-3"
+                                            placeholder="Örn: Hasta Randevusu"
+                                            autoFocus
+                                        />
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <Button type="submit" disabled={isCreatingThread}>
+                                        {isCreatingThread ? "Oluşturuluyor..." : "Oluştur"}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
                 </div>
 
                 <ScrollArea className="flex-1 p-4">
@@ -140,6 +206,26 @@ export default function ChatPage() {
             <div className="flex-1 flex flex-col">
                 {activeThreadId ? (
                     <>
+                        {/* Chat Header */}
+                        <div className="h-16 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between px-6">
+                            <div className="flex items-center">
+                                <div className="bg-blue-100 dark:bg-blue-900 p-2 rounded-full mr-3">
+                                    <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-300" />
+                                </div>
+                                <div>
+                                    <h2 className="font-semibold text-gray-800 dark:text-white">
+                                        {activeThread?.title || "Sohbet"}
+                                    </h2>
+                                    <p className="text-xs text-gray-500">
+                                        {activeThread?.createdAt ? new Date(activeThread.createdAt).toLocaleDateString('tr-TR') : ''}
+                                    </p>
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-5 w-5 text-gray-500" />
+                            </Button>
+                        </div>
+
                         <ScrollArea className="flex-1 p-4">
                             <div className="space-y-4 max-w-3xl mx-auto">
                                 {messages.map((m) => (
@@ -181,7 +267,7 @@ export default function ChatPage() {
                         </ScrollArea>
 
                         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                            <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-2">
+                            <form onSubmit={onSubmit} className="max-w-3xl mx-auto flex gap-2">
                                 <Input
                                     value={input}
                                     onChange={handleInputChange}

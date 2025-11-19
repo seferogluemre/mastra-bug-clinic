@@ -124,15 +124,30 @@ const app = new Elysia()
 
       // userId token'dan geliyor (güvenli)
       const uniqueUserId = auth.userId;
-      const threadId = `thread-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
+
+      if (!mastra.storage) {
+        throw new Error('Storage not initialized');
+      }
+
+      const threadId = `thread-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const newThread = {
+        id: threadId,
+        resourceId: uniqueUserId,
+        title: title || "Yeni Sohbet",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        metadata: {},
+      };
+
+      const savedThread = await mastra.storage.saveThread({ thread: newThread });
 
       return {
         success: true,
         data: {
-          threadId,
+          threadId: savedThread.id,
           userId: uniqueUserId,
-          title: title || "Yeni Sohbet",
-          createdAt: new Date().toISOString()
+          title: savedThread.title,
+          createdAt: savedThread.createdAt
         }
       }
 
@@ -149,6 +164,10 @@ const app = new Elysia()
         }
       }
       set.status = 500
+      return {
+        success: false,
+        error: "Thread oluşturulamadı"
+      }
     }
   })
   .get('/api/thread-list', async ({ query, set, headers, jwt }) => {
