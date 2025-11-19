@@ -6,7 +6,7 @@ import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
 import { success, ZodError } from 'zod/v4';
 import { jwt } from '@elysiajs/jwt';
-import { authService, RegisterDto } from './modules/auth';
+import { authService, authenticateRequest } from './modules/auth';
 import { JWT_SECRET } from './utils/jwt';
 
 const app = new Elysia()
@@ -28,15 +28,20 @@ const app = new Elysia()
     status: 'ok',
     timestamp: new Date().toISOString(),
   }))
-  .post('/api/chat', async ({ body, set }) => {
+  .post('/api/chat', async ({ body, set, headers, jwt }) => {
     const MAX_RETRIES = 3;
     const INITIAL_DELAY = 1000;
 
     try {
-      const validatedBody = chatSchema.parse(body);
-      const { message, threadId, userId } = validatedBody;
+      // JWT Authentication
+      const auth = await authenticateRequest(headers, jwt, set);
+      if ('error' in auth) return auth; // Token hatası varsa döndür
 
-      const uniqueUserId = userId || 'default-user';
+      const validatedBody = chatSchema.parse(body);
+      const { message, threadId } = validatedBody;
+
+      // userId artık token'dan geliyor (güvenli)
+      const uniqueUserId = auth.userId;
 
       // ThreadId zorunlu - yoksa hata döndür
       if (!threadId) {
@@ -163,13 +168,18 @@ const app = new Elysia()
       };
     }
   })
-  .post("/api/thread/new", async ({ body, set }) => {
+  .post("/api/thread-list", async ({ body, set, headers, jwt }) => {
     try {
-      const validatedBody = newThreadSchema.parse(body)
-      const { userId, title } = validatedBody;
+      // JWT Authentication
+      const auth = await authenticateRequest(headers, jwt, set);
+      if ('error' in auth) return auth; // Token hatası varsa döndür
 
-      const uniqueUserId = userId || "default-user"
-      const threadId = `thread-${Date.now()}-${Math.random().toString(35).substring(2, 9)}`
+      const validatedBody = newThreadSchema.parse(body)
+      const { title } = validatedBody;
+
+      // userId token'dan geliyor (güvenli)
+      const uniqueUserId = auth.userId;
+      const threadId = `thread-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
 
       return {
         success: true,
@@ -196,14 +206,13 @@ const app = new Elysia()
       set.status = 500
     }
   })
-  .get('/api/thread/list', async ({ query, set }) => {
+  .get('/api/thread-list', async ({ query, set, headers, jwt }) => {
     try {
-      const validatedQuery = threadListSchema.parse(query);
-      const { userId } = validatedQuery;
+      const auth = await authenticateRequest(headers, jwt, set);
+      if ('error' in auth) return auth;
 
-      const uniqueUserId = userId || 'default-user';
+      const uniqueUserId = auth.userId;
 
-      // Şimdilik boş array döndür, sonra Mastra storage'dan çekeceğiz
       return {
         success: true,
         data: {
