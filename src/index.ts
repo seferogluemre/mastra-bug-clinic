@@ -36,13 +36,27 @@ const app = new Elysia()
       const auth = await authenticateRequest(headers, jwt, set);
       if ('error' in auth) return auth;
 
-      const validatedBody = chatSchema.parse(body);
-      const { message, threadId } = validatedBody;
+      // Handle both single message and messages array (from useChat)
+      const { messages, threadId, message: singleMessage } = body as any;
+
+      let userMessage = singleMessage;
+      if (!userMessage && Array.isArray(messages)) {
+        const lastUserMessage = messages.reverse().find((m: any) => m.role === 'user');
+        if (lastUserMessage) {
+          userMessage = lastUserMessage.content;
+        }
+      }
+
       const uniqueUserId = auth.userId;
 
       if (!threadId) {
         set.status = 400;
         return { success: false, error: 'threadId gerekli' };
+      }
+
+      if (!userMessage) {
+        set.status = 400;
+        return { success: false, error: 'Mesaj bulunamadı' };
       }
 
       const uniqueThreadId = threadId;
@@ -58,12 +72,12 @@ const app = new Elysia()
       });
       const todayISO = today.toISOString().split('T')[0];
 
-      console.log('📅 Context:', { todayStr, todayISO, message });
+      console.log('📅 Context:', { todayStr, todayISO, message: userMessage });
 
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
-          const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${message}`;
+          const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${userMessage}`;
 
           const result = await agent.generate(contextMessage, {
             threadId: uniqueThreadId,

@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 export const chatSchema = z.object({
-  message: z.string().min(1, 'Mesaj boş olamaz'),
+  message: z.string().optional(),
+  messages: z.array(z.any()).optional(),
   threadId: z.string().optional(),
   userId: z.string().optional(),
 });

@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useChat } from "@ai-sdk/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -91,34 +90,54 @@ export default function ChatPage() {
         }
     }
 
-    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-        api: `${API_URL}/api/chat`,
-        body: {
-            threadId: activeThreadId,
-        },
-        headers: {
-            Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') : ''}`,
-        },
-        onResponse: (response: Response) => {
-            if (response.status === 401) {
-                router.push("/login")
+    const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; content: string }[]>([])
+    const [input, setInput] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
+
+    async function handleSendMessage(e: React.FormEvent) {
+        e.preventDefault()
+        if (!input.trim() || !activeThreadId) return
+
+        const userMessage = {
+            id: Date.now().toString(),
+            role: 'user' as const,
+            content: input
+        }
+
+        setMessages(prev => [...prev, userMessage])
+        setInput("")
+        setIsLoading(true)
+
+        try {
+            const res = await fetchClient("/api/chat", {
+                method: "POST",
+                body: JSON.stringify({
+                    message: userMessage.content,
+                    threadId: activeThreadId
+                })
+            })
+
+            if (res.success && res.data.message) {
+                const botMessage = {
+                    id: (Date.now() + 1).toString(),
+                    role: 'assistant' as const,
+                    content: res.data.message
+                }
+                setMessages(prev => [...prev, botMessage])
+            } else {
+                console.error("Chat response error:", res.error)
             }
-        },
-        onError: (error: Error) => {
-            console.error("Chat error", error)
-        },
-    })
+        } catch (error) {
+            console.error("Failed to send message", error)
+        } finally {
+            setIsLoading(false)
+        }
+    }
 
     function handleLogout() {
         localStorage.removeItem("token")
         localStorage.removeItem("user")
         router.push("/login")
-    }
-
-    // Custom submit handler to prevent refresh
-    const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        handleSubmit()
     }
 
     const activeThread = threads.find(t => t.threadId === activeThreadId)
@@ -128,7 +147,7 @@ export default function ChatPage() {
             {/* Sidebar */}
             <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
                 <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                    <h1 className="font-bold text-xl text-gray-800 dark:text-white">Chatbot Asistan</h1>
+                    <h1 className="font-bold text-xl text-gray-800 dark:text-white">Mastra AI</h1>
 
                     <Dialog open={isNewThreadDialogOpen} onOpenChange={setIsNewThreadDialogOpen}>
                         <DialogTrigger asChild>
@@ -176,7 +195,10 @@ export default function ChatPage() {
                                 key={thread.threadId}
                                 variant={activeThreadId === thread.threadId ? "secondary" : "ghost"}
                                 className="w-full justify-start text-left truncate"
-                                onClick={() => setActiveThreadId(thread.threadId)}
+                                onClick={() => {
+                                    setActiveThreadId(thread.threadId)
+                                    setMessages([]) // Clear messages when switching threads for now
+                                }}
                             >
                                 <MessageSquare className="mr-2 h-4 w-4" />
                                 <span className="truncate">{thread.title || "Yeni Sohbet"}</span>
@@ -267,10 +289,10 @@ export default function ChatPage() {
                         </ScrollArea>
 
                         <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-                            <form onSubmit={onSubmit} className="max-w-3xl mx-auto flex gap-2">
+                            <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex gap-2">
                                 <Input
                                     value={input}
-                                    onChange={handleInputChange}
+                                    onChange={(e) => setInput(e.target.value)}
                                     placeholder="Mesajınızı yazın..."
                                     className="flex-1"
                                 />
