@@ -5,10 +5,17 @@ import { chatSchema, newThreadSchema, threadListSchema } from './schemas';
 import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
 import { success, ZodError } from 'zod/v4';
+import { jwt } from '@elysiajs/jwt';
+import { authService, RegisterDto } from './modules/auth';
+import { JWT_SECRET } from './utils/jwt';
 
 const app = new Elysia()
   .use(swagger())
   .use(cors())
+  .use(jwt({
+    name: 'jwt',
+    secret: JWT_SECRET,
+  }))
   .get('/', () => ({
     message: 'Klinik Yönetim Sistemi API',
     version: '1.0.0',
@@ -39,7 +46,7 @@ const app = new Elysia()
           error: 'threadId gerekli. Önce POST /api/thread/new ile yeni konuşma başlatın.',
         };
       }
-      
+
       const uniqueThreadId = threadId;
 
       const agent = mastra.getAgent('clinicAgent');
@@ -212,6 +219,73 @@ const app = new Elysia()
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Thread listesi getirilemedi',
+      };
+    }
+  })
+  .post('/api/auth/register', async ({ body, set }) => {
+    try {
+      const { email, password, firstName, lastName } = body as any;
+
+      if (!email || !password || !firstName || !lastName) {
+        set.status = 400;
+        return {
+          success: false,
+          error: 'Email, şifre, ad ve soyad zorunludur',
+        };
+      }
+
+      const user = await authService.register({ email, password, firstName, lastName });
+
+      return {
+        success: true,
+        data: {
+          user,
+          message: 'Kayıt başarılı! Şimdi giriş yapabilirsiniz.',
+        },
+      };
+    } catch (error) {
+      console.error('❌ Register error:', error);
+      set.status = 400;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Kayıt başarısız',
+      };
+    }
+  })
+  .post('/api/auth/login', async ({ body, jwt, set }) => {
+    try {
+      const { email, password } = body as any;
+
+      if (!email || !password) {
+        set.status = 400;
+        return {
+          success: false,
+          error: 'Email ve şifre zorunludur',
+        };
+      }
+
+      const user = await authService.login(email, password);
+
+      // JWT token oluştur
+      const token = await jwt.sign({
+        userId: user.id,
+        email: user.email,
+      });
+
+      return {
+        success: true,
+        data: {
+          user,
+          token,
+          message: 'Giriş başarılı!',
+        },
+      };
+    } catch (error) {
+      console.error('❌ Login error:', error);
+      set.status = 401;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Giriş başarısız',
       };
     }
   })

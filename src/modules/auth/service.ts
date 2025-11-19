@@ -1,27 +1,25 @@
 import prisma from '../../core/prisma';
 import bcrypt from 'bcrypt';
+import { RegisterDto } from './types';
 
 export class AuthService {
-  async register(email: string, password: string, firstName: string, lastName: string) {
-    // Email kontrolü
+  async register(data: RegisterDto) {
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: data.email },
     });
-
+    
     if (existingUser) {
       throw new Error('Bu email zaten kayıtlı');
     }
 
-    // Şifreyi hash'le
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    // Kullanıcı oluştur
     const user = await prisma.user.create({
       data: {
-        email,
+        email: data.email,
         hashedPassword,
-        firstName,
-        lastName,
+        firstName: data.firstName,
+        lastName: data.lastName,
       },
       select: {
         id: true,
@@ -32,7 +30,12 @@ export class AuthService {
       },
     });
 
-    return user;
+    return {
+      id: user.id,
+      email: user.email,
+      name: `${user.firstName} ${user.lastName}`,
+      createdAt: user.createdAt,
+    };
   }
 
   async login(email: string, password: string) {
