@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useChat } from "ai/react"
+import { useChat } from "@ai-sdk/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -76,12 +76,12 @@ export default function ChatPage() {
         headers: {
             Authorization: `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('token') : ''}`,
         },
-        onResponse: (response) => {
+        onResponse: (response: Response) => {
             if (response.status === 401) {
                 router.push("/login")
             }
         },
-        onError: (error) => {
+        onError: (error: Error) => {
             console.error("Chat error", error)
         },
     })
