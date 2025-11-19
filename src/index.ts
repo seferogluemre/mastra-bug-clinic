@@ -213,14 +213,38 @@ const app = new Elysia()
 
       const uniqueUserId = auth.userId;
 
-      return {
-        success: true,
-        data: {
-          userId: uniqueUserId,
-          threads: [],
-          message: 'Thread list API hazır - Mastra storage entegrasyonu sonraki adımda',
-        },
-      };
+      try {
+        // Mastra storage'dan direkt user'a ait thread'leri çek
+        const userThreads = await mastra.storage.getThreadsByResourceId({
+          resourceId: uniqueUserId,
+        });
+
+        console.log('🔍 User threads from storage:', userThreads?.length || 0);
+
+        return {
+          success: true,
+          data: {
+            userId: uniqueUserId,
+            threads: Array.isArray(userThreads) ? userThreads.map((thread: any) => ({
+              threadId: thread.id,
+              title: thread.title,
+              resourceId: thread.resourceId,
+              createdAt: thread.createdAt,
+              updatedAt: thread.updatedAt,
+            })) : [],
+          },
+        };
+      } catch (storageError) {
+        console.error('❌ Storage error:', storageError);
+        return {
+          success: true,
+          data: {
+            userId: uniqueUserId,
+            threads: [],
+            message: 'Storage API henüz hazır değil',
+          },
+        };
+      }
     } catch (error) {
       console.error('❌ Thread list error:', error);
 

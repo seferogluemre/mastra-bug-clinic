@@ -1,7 +1,13 @@
 import { extractTokenFromHeader, isValidToken } from '../../utils/jwt';
 
 export async function authenticateRequest(headers: any, jwt: any, set: any) {
-  const token = extractTokenFromHeader(headers.authorization);
+  console.log('🔍 Headers:', headers);
+  console.log('🔍 Authorization:', headers.authorization || headers.Authorization);
+  
+  const authHeader = headers.authorization || headers.Authorization;
+  const token = extractTokenFromHeader(authHeader);
+  
+  console.log('🔍 Extracted token:', token?.substring(0, 20) + '...');
   
   if (!token) {
     set.status = 401;
