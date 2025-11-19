@@ -42,4 +42,3 @@ export const listMedicalRecordsSchema = z.object({
 });
 
 export type ListMedicalRecordsDto = z.infer<typeof listMedicalRecordsSchema>;
-

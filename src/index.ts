@@ -1,9 +1,10 @@
 import { Elysia } from 'elysia';
 import { mastra } from './mastra';
 import { z } from 'zod';
-import { chatSchema } from './schemas';
+import { chatSchema, newThreadSchema, threadListSchema } from './schemas';
 import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
+import { success, ZodError } from 'zod/v4';
 
 const app = new Elysia()
   .use(swagger())
@@ -30,7 +31,7 @@ const app = new Elysia()
 
       // ResourceId: Kullanıcı kimliği (şimdilik frontend'den geliyor, ileride JWT olacak)
       const uniqueUserId = userId || 'default-user';
-      
+
       // ThreadId: Kullanıcı bazlı sabit thread (aynı kullanıcı = aynı konuşma)
       const uniqueThreadId = threadId || `thread-${uniqueUserId}`;
 
@@ -44,7 +45,7 @@ const app = new Elysia()
       }
 
       const today = new Date();
-      
+
       const todayStr = today.toLocaleDateString('tr-TR', {
         weekday: 'long',
         year: 'numeric',
@@ -62,13 +63,13 @@ const app = new Elysia()
         try {
           console.log('🚀 Mastra Agent kullanılıyor...', { attempt: attempt + 1 });
 
-      const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${message}`;
+          const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${message}`;
 
-      const result = await agent.generate(contextMessage, {
-        threadId: uniqueThreadId,
-        resourceId: uniqueUserId,
-        maxSteps: 5,
-      });
+          const result = await agent.generate(contextMessage, {
+            threadId: uniqueThreadId,
+            resourceId: uniqueUserId,
+            maxSteps: 5,
+          });
 
           console.log('✅ Agent yanıt aldı');
           console.log('📝 Response text:', result.text || 'BOŞ');
@@ -145,6 +146,65 @@ const app = new Elysia()
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Bilinmeyen bir hata oluştu',
+      };
+    }
+  })
+  .post("/api/thread/new", async ({ body, set }) => {
+    try {
+      const validatedBody = newThreadSchema.parse(body)
+      const { userId, title } = validatedBody;
+
+      const uniqueUserId = userId || "default-user"
+      const threadId = `thread-${Date.now()}-${Math.random().toString(35).substring(2, 9)}`
+
+      return {
+        success: true,
+        data: {
+          threadId,
+          userId: uniqueUserId,
+          title: title || "Yeni Sohbet",
+          createdAt: new Date().toISOString()
+        }
+      }
+
+
+    } catch (error) {
+      console.error("New Thread Error", (error as Error).message)
+
+      if (error instanceof ZodError) {
+        set.status = 400;
+        return {
+          success: false,
+          error: "Geçersiz istek formatı",
+          details: (error as Error).message
+        }
+      }
+      set.status = 500
+    }
+  })
+  .get('/api/thread/list', async ({ query, set }) => {
+    try {
+      const validatedQuery = threadListSchema.parse(query);
+      const { userId } = validatedQuery;
+
+      const uniqueUserId = userId || 'default-user';
+
+      // Şimdilik boş array döndür, sonra Mastra storage'dan çekeceğiz
+      return {
+        success: true,
+        data: {
+          userId: uniqueUserId,
+          threads: [],
+          message: 'Thread list API hazır - Mastra storage entegrasyonu sonraki adımda',
+        },
+      };
+    } catch (error) {
+      console.error('❌ Thread list error:', error);
+
+      set.status = 500;
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Thread listesi getirilemedi',
       };
     }
   })

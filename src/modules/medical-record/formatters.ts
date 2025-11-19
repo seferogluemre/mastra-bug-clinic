@@ -2,7 +2,7 @@ import type { MedicalRecord, Patient, Doctor, Appointment } from '@prisma/client
 import type { FormattedMedicalRecord, FormattedMedicalRecordWithDetails } from './types';
 
 export function formatMedicalRecord(record: MedicalRecord): FormattedMedicalRecord {
-  return {
+    return {
     id: record.id,
     patientId: record.patientId,
     doctorId: record.doctorId,
@@ -67,4 +67,3 @@ export function formatMedicalRecordsWithDetails(
 ): FormattedMedicalRecordWithDetails[] {
   return records.map(formatMedicalRecordWithDetails);
 }
-

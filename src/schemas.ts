@@ -5,3 +5,12 @@ export const chatSchema = z.object({
   threadId: z.string().optional(),
   userId: z.string().optional(),
 });
+
+export const newThreadSchema = z.object({
+  userId: z.string().optional(),
+  title: z.string().max(100).optional(),
+});
+
+export const threadListSchema = z.object({
+  userId: z.string().optional(),
+});

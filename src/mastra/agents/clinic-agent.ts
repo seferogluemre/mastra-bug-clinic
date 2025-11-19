@@ -1,7 +1,7 @@
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { LibSQLStore } from '@mastra/libsql';
-import { clinicModel } from '../../core/llm';
+import { clinicModel } from '../llm';
 import {
   createAppointmentTool,
   listAppointmentsTool,
