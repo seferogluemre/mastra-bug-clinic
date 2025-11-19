@@ -218,12 +218,23 @@ const app = new Elysia()
                 resourceId: thread.resourceId,
                 createdAt: thread.createdAt,
                 updatedAt: thread.updatedAt,
-                messages: sortedMessages.map((m: any) => ({
-                  id: m.id,
-                  role: m.role,
-                  content: m.content,
-                  createdAt: m.createdAt
-                }))
+                messages: sortedMessages.map((m: any) => {
+                  let content = m.content;
+                  // Clean up the system context prefix if present
+                  if (m.role === 'user' && typeof content === 'string') {
+                    const prefixMatch = content.match(/BUGÜN:.*?\n\nKullanıcı mesajı:\s*/s);
+                    if (prefixMatch) {
+                      content = content.replace(prefixMatch[0], '');
+                    }
+                  }
+
+                  return {
+                    id: m.id,
+                    role: m.role,
+                    content: content,
+                    createdAt: m.createdAt
+                  };
+                })
               };
             } catch (err) {
               console.error(`Failed to fetch messages for thread ${thread.id}`, err);

@@ -102,7 +102,7 @@ export default function ChatPage() {
         }
     }
 
-    const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; content: string }[]>([])
+    const [messages, setMessages] = useState<{ id: string; role: 'user' | 'assistant'; content: string; createdAt?: string }[]>([])
     const [input, setInput] = useState("")
     const [isLoading, setIsLoading] = useState(false)
 
@@ -115,7 +115,8 @@ export default function ChatPage() {
         const userMessage = {
             id: Date.now().toString(),
             role: 'user' as const,
-            content: input
+            content: input,
+            createdAt: new Date().toISOString()
         }
 
         setMessages(prev => [...prev, userMessage])
@@ -135,7 +136,8 @@ export default function ChatPage() {
                 const botMessage = {
                     id: (Date.now() + 1).toString(),
                     role: 'assistant' as const,
-                    content: res.data.message
+                    content: res.data.message,
+                    createdAt: new Date().toISOString()
                 }
                 setMessages(prev => [...prev, botMessage])
             } else {
@@ -296,42 +298,60 @@ export default function ChatPage() {
 
                         <ScrollArea className="flex-1 p-4 sm:p-6">
                             <div className="space-y-6 max-w-3xl mx-auto">
-                                {messages.map((m) => (
-                                    <div
-                                        key={m.id}
-                                        className={cn(
-                                            "flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300",
-                                            m.role === "user" ? "justify-end" : "justify-start"
-                                        )}
-                                    >
-                                        <div
-                                            className={cn(
-                                                "flex max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 shadow-sm",
-                                                m.role === "user"
-                                                    ? "bg-blue-600 text-white rounded-br-none"
-                                                    : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-bl-none"
-                                            )}
-                                        >
-                                            <div className="mr-3 mt-0.5 opacity-80">
-                                                {m.role === "user" ? (
-                                                    <User className="h-4 w-4" />
-                                                ) : (
-                                                    <Bot className="h-4 w-4" />
-                                                )}
-                                            </div>
-                                            <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
-                                                {typeof m.content === 'string' ? (
-                                                    m.content
-                                                ) : (
-                                                    <span className="italic text-gray-500">
-                                                        {/* Handle tool calls or other non-string content */}
-                                                        {(m.content as any)?.toolName ? `Tool used: ${(m.content as any).toolName}` : JSON.stringify(m.content)}
+                                {messages.map((m, index) => {
+                                    const showDateSeparator = index === 0 ||
+                                        new Date(messages[index - 1].createdAt || Date.now()).toDateString() !== new Date(m.createdAt || Date.now()).toDateString();
+
+                                    return (
+                                        <div key={m.id} className="w-full flex flex-col">
+                                            {showDateSeparator && (
+                                                <div className="flex justify-center my-4">
+                                                    <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-3 py-1 rounded-full shadow-sm">
+                                                        {new Date(m.createdAt || Date.now()).toLocaleDateString('tr-TR', {
+                                                            day: 'numeric',
+                                                            month: 'long',
+                                                            year: 'numeric',
+                                                            weekday: 'long'
+                                                        })}
                                                     </span>
+                                                </div>
+                                            )}
+                                            <div
+                                                className={cn(
+                                                    "flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300",
+                                                    m.role === "user" ? "justify-end" : "justify-start"
                                                 )}
+                                            >
+                                                <div
+                                                    className={cn(
+                                                        "flex max-w-[85%] sm:max-w-[75%] rounded-2xl p-4 shadow-sm",
+                                                        m.role === "user"
+                                                            ? "bg-blue-600 text-white rounded-br-none"
+                                                            : "bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-bl-none"
+                                                    )}
+                                                >
+                                                    <div className="mr-3 mt-0.5 opacity-80">
+                                                        {m.role === "user" ? (
+                                                            <User className="h-4 w-4" />
+                                                        ) : (
+                                                            <Bot className="h-4 w-4" />
+                                                        )}
+                                                    </div>
+                                                    <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
+                                                        {typeof m.content === 'string' ? (
+                                                            m.content
+                                                        ) : (
+                                                            <span className="italic text-gray-500">
+                                                                {/* Handle tool calls or other non-string content */}
+                                                                {(m.content as any)?.toolName ? `Tool used: ${(m.content as any).toolName}` : JSON.stringify(m.content)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                                 {isLoading && (
                                     <div className="flex justify-start w-full animate-in fade-in duration-300">
                                         <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-bl-none p-4 flex items-center shadow-sm">
