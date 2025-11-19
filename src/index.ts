@@ -201,17 +201,49 @@ const app = new Elysia()
 
         console.log('🔍 User threads from storage:', userThreads?.length || 0);
 
+        const threadsWithMessages = await Promise.all(
+          (userThreads || []).map(async (thread: any) => {
+            try {
+              const messages = await mastra.storage?.getMessages({
+                threadId: thread.id,
+              });
+
+              const sortedMessages = Array.isArray(messages)
+                ? messages.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+                : [];
+
+              return {
+                threadId: thread.id,
+                title: thread.title,
+                resourceId: thread.resourceId,
+                createdAt: thread.createdAt,
+                updatedAt: thread.updatedAt,
+                messages: sortedMessages.map((m: any) => ({
+                  id: m.id,
+                  role: m.role,
+                  content: m.content,
+                  createdAt: m.createdAt
+                }))
+              };
+            } catch (err) {
+              console.error(`Failed to fetch messages for thread ${thread.id}`, err);
+              return {
+                threadId: thread.id,
+                title: thread.title,
+                resourceId: thread.resourceId,
+                createdAt: thread.createdAt,
+                updatedAt: thread.updatedAt,
+                messages: []
+              };
+            }
+          })
+        );
+
         return {
           success: true,
           data: {
             userId: uniqueUserId,
-            threads: Array.isArray(userThreads) ? userThreads.map((thread: any) => ({
-              threadId: thread.id,
-              title: thread.title,
-              resourceId: thread.resourceId,
-              createdAt: thread.createdAt,
-              updatedAt: thread.updatedAt,
-            })) : [],
+            threads: threadsWithMessages,
           },
         };
       } catch (storageError) {

@@ -217,7 +217,12 @@ export default function ChatPage() {
                                 )}
                                 onClick={() => {
                                     setActiveThreadId(thread.threadId)
-                                    setMessages([])
+                                    // Load messages from the thread object if available
+                                    if (thread.messages) {
+                                        setMessages(thread.messages)
+                                    } else {
+                                        setMessages([])
+                                    }
                                 }}
                             >
                                 <MessageSquare className="mr-2 h-4 w-4" />
@@ -314,7 +319,16 @@ export default function ChatPage() {
                                                     <Bot className="h-4 w-4" />
                                                 )}
                                             </div>
-                                            <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">{m.content}</div>
+                                            <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
+                                                {typeof m.content === 'string' ? (
+                                                    m.content
+                                                ) : (
+                                                    <span className="italic text-gray-500">
+                                                        {/* Handle tool calls or other non-string content */}
+                                                        {(m.content as any)?.toolName ? `Tool used: ${(m.content as any).toolName}` : JSON.stringify(m.content)}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
