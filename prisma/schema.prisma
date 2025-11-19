@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  hashedPassword  String @db.Text @map("hashed_password")
+  firstName String   @map("first_name") @db.VarChar(25) @default("")
+  lastName  String   @map("last_name") @db.VarChar(25) @default("")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+} 
+
 model Patient {
   id             String          @id @default(uuid())
   name           String
