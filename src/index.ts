@@ -79,6 +79,7 @@ const app = new Elysia()
         try {
           const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${userMessage}`;
 
+          //todo!:generate yerine stream kullanılcak
           const result = await agent.generate(contextMessage, {
             threadId: uniqueThreadId,
             resourceId: uniqueUserId,

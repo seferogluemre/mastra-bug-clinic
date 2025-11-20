@@ -7,9 +7,10 @@ const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; // Dr. Ahmet Y
 
 export const createAppointmentTool = createTool({
   id: 'createAppointment',
-  description: 'Creates appointment. CRITICAL: 1) Use patientId from just created patient OR search by name/phone. 2) Extract patient\'s SPECIFIC health complaint in notes. If patientId not provided, uses default test patient.',
+  description: 'Creates appointment. CRITICAL: 1) Use patientId from just created patient OR search by name/phone. 2) If user mentions doctor name/specialty, use searchDoctorTool to find doctorId. 3) Extract patient\'s SPECIFIC health complaint in notes. If patientId/doctorId not provided, uses defaults.',
   inputSchema: z.object({
     patientId: z.string().uuid().optional().describe('Patient ID (UUID). IMPORTANT: Use the ID from just created patient (createPatientTool) or search with searchPatientTool. If not provided, uses default test patient.'),
+    doctorId: z.string().uuid().optional().describe('Doctor ID (UUID). CRITICAL: If user mentions doctor name/specialty (e.g., "Dr. Ahmet", "Kardiyoloji doktoru"), use searchDoctorTool FIRST to find the doctor ID. If not provided, uses default doctor.'),
     date: z.string().datetime().describe('Date in ISO format (YYYY-MM-DDTHH:mm:ss.000Z)'),
     notes: z.string().max(500).optional().describe('Patient\'s SPECIFIC health complaint or symptom from their original message. Examples: "boğaz ağrısı", "baş ağrısı", "grip". DO NOT use generic text like "randevu almak istedi".'),
   }).strict(),
@@ -39,7 +40,7 @@ export const createAppointmentTool = createTool({
     try {
       const appointment = await appointmentService.create({
         patientId: context.patientId || DEFAULT_PATIENT_ID,
-        doctorId: DEFAULT_DOCTOR_ID,
+        doctorId: context.doctorId || DEFAULT_DOCTOR_ID,
         date: context.date,
         duration: 30,
         notes: context.notes,
@@ -50,13 +51,15 @@ export const createAppointmentTool = createTool({
     }
   },
 });
-
+//todo: gereksiz describleri kaldır, input schemayı düzenle,outputu kısa tut.
 export const listAppointmentsTool = createTool({
   id: 'listAppointments',
-  description: 'Lists all appointments. No parameters needed.',
+  description: 'Lists appointments. Can filter by patient, doctor, or status.',
   inputSchema: z.object({
-    status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional().describe('Filter appointments by status (pending/confirmed/cancelled/completed)'),
-  }).strict(),
+    patientId: z.string().uuid().optional(),
+    doctorId: z.string().uuid().optional(),
+    status: z.enum(['pending', 'confirmed', 'cancelled', 'completed']).optional(),
+  }).strict().describe('Filter appointments by patient, doctor, or status'),
   outputSchema: z.array(
     z.object({
       id: z.string().describe('Unique appointment ID'),
@@ -82,7 +85,8 @@ export const listAppointmentsTool = createTool({
   execute: async ({ context }) => {
     try {
       const appointments = await appointmentService.list({
-        patientId: DEFAULT_PATIENT_ID,
+        patientId: context.patientId,
+        doctorId: context.doctorId,
         status: context.status,
       });
       return appointments;

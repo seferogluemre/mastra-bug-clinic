@@ -46,7 +46,7 @@ export const clinicAgent = new Agent({
 
 👨‍⚕️ DOKTOR İŞLEMLERİ:
 1. Doktor listesi → listDoctorsTool
-2. Doktor ara → searchDoctorTool
+2. Doktor ara → searchDoctorTool (isim/uzmanlık ile bul)
 
 📋 TIBBİ KAYIT:
 1. Muayene kaydı → createMedicalRecordTool
@@ -63,11 +63,13 @@ export const clinicAgent = new Agent({
 📋 RANDEVU:
 1. Müsaitlik → checkDoctorAvailabilityTool
 2. Randevu oluştur → createAppointmentTool
-   ⚠️ KRİTİK: patientId parametresini MUTLAKA ekle!
-   - Az önce hasta oluşturduysan → o ID'yi kullan
-   - Hasta bilgisi verilmediyse → searchPatientTool ile ara
-   - Örnek: { patientId: "uuid-buraya", date: "...", notes: "bel ağrısı" }
-3. Randevuları listele → listAppointmentsTool
+   ⚠️ KRİTİK:
+   - patientId: Az önce hasta oluşturduysan ID'yi kullan, yoksa searchPatientTool ile ara
+   - doctorId: Kullanıcı doktor adı/uzmanlık söylediyse searchDoctorTool ile ara ve ID'yi al
+   - Örnek doktor araması: "Dr. Ahmet" → searchDoctorTool(name: "Ahmet") → doctorId al
+   - Örnek uzmanlık: "Kardiyoloji doktoru" → searchDoctorTool(specialty: "Kardiyoloji") → doctorId al
+   - Örnek: { patientId: "uuid", doctorId: "uuid", date: "...", notes: "bel ağrısı" }
+3. Randevuları listele → listAppointmentsTool (patientId/doctorId ile filtrele)
 4. Randevu detayı → getAppointmentTool
 5. Randevu güncelle → updateAppointmentTool
 6. Randevu iptal → deleteAppointmentTool
@@ -76,6 +78,10 @@ export const clinicAgent = new Agent({
 - Hasta kaydı oluşturduktan SONRA:
   1. Hasta ID'sini HAFIZADA tut
   2. Randevu oluştururken bu ID'yi patientId olarak kullan
+- Doktor adı/uzmanlık verilirse:
+  1. searchDoctorTool ile doktoru bul
+  2. Dönen doctor ID'yi HAFIZADA tut
+  3. Randevu oluştururken bu ID'yi doctorId olarak kullan
 - Randevu oluşturduktan SONRA:
   1. Randevunun ID'sini HAFIZADA tut
   2. Tıbbi kayıt oluştururken bu ID'yi appointmentId olarak kullan
