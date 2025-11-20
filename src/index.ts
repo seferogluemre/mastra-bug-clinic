@@ -345,6 +345,6 @@ const app = new Elysia()
       };
     }
   })
-  .listen(3001, () => {
+  .listen(process.env.PORT, () => {
     console.log('Server is running on http://localhost:3000');
   });
