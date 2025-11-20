@@ -1,4 +1,7 @@
-import { groq } from '@ai-sdk/groq';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
 
-// Llama 3.3 70B - Hızlı ve güvenilir model
-export const clinicModel = groq('llama-3.3-70b-versatile');
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY,
+});
+
+export const clinicModel = openrouter('openai/gpt-oss-20b:free');

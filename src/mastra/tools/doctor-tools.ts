@@ -59,9 +59,9 @@ export const getDoctorTool = createTool({
 
 export const listDoctorsTool = createTool({
   id: 'listDoctors',
-  description: 'List all doctors. Filter by specialty optional.',
+  description: 'List all doctors. Use when user asks "hangi doktorlar var" or needs to see all doctors. Filter by specialty optional.',
   inputSchema: z.object({
-    specialty: z.string().optional(),
+    specialty: z.string().optional().describe('Filter by specialty (Ortopedi, Kardiyoloji, etc)'),
   }).strict(),
   outputSchema: z.array(z.object({
     id: z.string(),
@@ -82,10 +82,10 @@ export const listDoctorsTool = createTool({
 
 export const searchDoctorTool = createTool({
   id: 'searchDoctor',
-  description: 'Search doctors by name, specialty, or email.',
+  description: 'Search doctors. IMPORTANT: Use BOTH name AND specialty if user provides both. Example: "Mustafa özkan ortopedi" → { name: "Mustafa özkan", specialty: "Ortopedi" }. Returns empty array if no match.',
   inputSchema: z.object({
-    name: z.string().optional(),
-    specialty: z.string().optional(),
+    name: z.string().optional().describe('Doctor name - partial match, case insensitive'),
+    specialty: z.string().optional().describe('Medical specialty - partial match (Ortopedi, Kardiyoloji, Dermatoloji, etc)'),
     email: z.string().optional(),
   }).strict(),
   outputSchema: z.array(z.object({
