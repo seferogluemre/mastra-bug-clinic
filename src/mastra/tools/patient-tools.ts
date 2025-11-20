@@ -4,22 +4,17 @@ import { patientService } from '../../modules/patient/service';
 
 export const createPatientTool = createTool({
   id: 'createPatient',
-  description: 'Register a new patient in the system. Use when user wants to create profile or register.',
+  description: 'Register new patient. Save returned ID for future use.',
   inputSchema: z.object({
-    name: z.string().min(2).describe('Patient full name (minimum 2 characters)'),
-    phone: z.string().optional().describe('Patient phone number (optional)'),
-    email: z.string().email().optional().describe('Patient email address (optional, must be valid email)'),
-    dateOfBirth: z.string().datetime().optional().describe('Date of birth in ISO format (optional, e.g., 1990-01-15T00:00:00.000Z)'),
-    address: z.string().optional().describe('Patient home address (optional)'),
+    name: z.string().min(2),
+    phone: z.string().optional(),
+    email: z.string().email().optional(),
+    dateOfBirth: z.string().datetime().optional(),
+    address: z.string().optional(),
   }).strict(),
   outputSchema: z.object({
-    id: z.string().describe('Unique patient ID (UUID)'),
-    name: z.string().describe('Patient full name'),
-    phone: z.string().nullable().describe('Patient phone number'),
-    email: z.string().nullable().describe('Patient email address'),
-    dateOfBirth: z.string().nullable().describe('Date of birth in ISO format'),
-    address: z.string().nullable().describe('Patient home address'),
-    createdAt: z.string().describe('Registration timestamp'),
+    id: z.string(),
+    name: z.string(),
   }),
   execute: async ({ context }) => {
     try {
@@ -39,26 +34,20 @@ export const createPatientTool = createTool({
 
 export const getPatientTool = createTool({
   id: 'getPatient',
-  description: 'Get patient information by ID. Returns patient details with recent appointments.',
+  description: 'Get patient info by ID.',
   inputSchema: z.object({
-    patientId: z.string().uuid().describe('Patient ID (UUID format)'),
+    patientId: z.string().uuid(),
   }).strict(),
   outputSchema: z.object({
-    id: z.string().describe('Unique patient ID (UUID)'),
-    name: z.string().describe('Patient full name'),
-    phone: z.string().nullable().describe('Patient phone number'),
-    email: z.string().nullable().describe('Patient email address'),
-    dateOfBirth: z.string().nullable().describe('Date of birth in ISO format'),
-    address: z.string().nullable().describe('Patient home address'),
-    createdAt: z.string().describe('Registration timestamp'),
-    updatedAt: z.string().describe('Last update timestamp'),
+    id: z.string(),
+    name: z.string(),
+    phone: z.string().nullable(),
+    email: z.string().nullable(),
     recentAppointments: z.array(z.object({
-      id: z.string().describe('Appointment ID'),
-      date: z.string().describe('Appointment date and time'),
-      status: z.string().describe('Appointment status'),
-      doctorName: z.string().describe('Doctor full name'),
-      specialty: z.string().describe('Doctor specialty'),
-    }).describe('Appointment record')).describe('List of recent appointments'),
+      date: z.string(),
+      status: z.string(),
+      doctorName: z.string(),
+    })),
   }),
   execute: async ({ context }) => {
     try {
@@ -72,23 +61,18 @@ export const getPatientTool = createTool({
 
 export const findPatientByEmailTool = createTool({
   id: 'findPatientByEmail',
-  description: 'Find patient by email address. Returns patient object if found, null otherwise.',
+  description: 'Find patient by email.',
   inputSchema: z.object({
-    email: z.string().email().describe('Patient email address to search for'),
+    email: z.string().email(),
   }).strict(),
   outputSchema: z.union([
     z.object({
-      id: z.string().describe('Unique patient ID (UUID)'),
-      name: z.string().describe('Patient full name'),
-      phone: z.string().nullable().describe('Patient phone number'),
-      email: z.string().nullable().describe('Patient email address'),
-      dateOfBirth: z.string().nullable().describe('Date of birth in ISO format'),
-      address: z.string().nullable().describe('Patient home address'),
-      createdAt: z.string().describe('Registration timestamp'),
-      updatedAt: z.string().describe('Last update timestamp'),
-    }).describe('Patient information if found'),
-    z.null().describe('Null if patient not found'),
-  ]).describe('Patient object or null'),
+      id: z.string(),
+      name: z.string(),
+      email: z.string().nullable(),
+    }),
+    z.null(),
+  ]),
   execute: async ({ context }) => {
     try {
       const patient = await patientService.getByEmail(context.email);
@@ -101,18 +85,17 @@ export const findPatientByEmailTool = createTool({
 
 export const searchPatientTool = createTool({
   id: 'searchPatient',
-  description: 'Search patients by name, phone, or email. Provide at least one search parameter.',
+  description: 'Search patients by name, phone, or email.',
   inputSchema: z.object({
-    name: z.string().optional().describe('Search by patient name (partial match supported)'),
-    phone: z.string().optional().describe('Search by patient phone number'),
-    email: z.string().optional().describe('Search by patient email address'),
+    name: z.string().optional(),
+    phone: z.string().optional(),
+    email: z.string().optional(),
   }).strict(),
   outputSchema: z.array(z.object({
-    id: z.string().describe('Unique patient ID (UUID)'),
-    name: z.string().describe('Patient full name'),
-    phone: z.string().nullable().describe('Patient phone number'),
-    email: z.string().nullable().describe('Patient email address'),
-  }).describe('Patient search result')).describe('List of matching patients'),
+    id: z.string(),
+    name: z.string(),
+    phone: z.string().nullable(),
+  })),
   execute: async ({ context }) => {
     try {
       const patients = await patientService.search(context);
@@ -125,21 +108,17 @@ export const searchPatientTool = createTool({
 
 export const updatePatientTool = createTool({
   id: 'updatePatient',
-  description: 'Update patient information. Provide only the fields you want to change.',
+  description: 'Update patient info.',
   inputSchema: z.object({
-    patientId: z.string().uuid().describe('Patient ID to update (UUID format)'),
-    name: z.string().min(2).optional().describe('New patient name (minimum 2 characters, optional)'),
-    phone: z.string().optional().describe('New phone number (optional)'),
-    email: z.string().email().optional().describe('New email address (optional, must be valid email)'),
-    address: z.string().optional().describe('New home address (optional)'),
+    patientId: z.string().uuid(),
+    name: z.string().min(2).optional(),
+    phone: z.string().optional(),
+    email: z.string().email().optional(),
+    address: z.string().optional(),
   }).strict(),
   outputSchema: z.object({
-    id: z.string().describe('Unique patient ID (UUID)'),
-    name: z.string().describe('Updated patient full name'),
-    phone: z.string().nullable().describe('Updated patient phone number'),
-    email: z.string().nullable().describe('Updated patient email address'),
-    address: z.string().nullable().describe('Updated patient home address'),
-    updatedAt: z.string().describe('Update timestamp'),
+    id: z.string(),
+    name: z.string(),
   }),
   execute: async ({ context }) => {
     try {
@@ -154,20 +133,19 @@ export const updatePatientTool = createTool({
 
 export const getPatientStatsTool = createTool({
   id: 'getPatientStats',
-  description: 'Get patient appointment statistics including total, upcoming, and completed appointments.',
+  description: 'Get patient appointment statistics.',
   inputSchema: z.object({
-    patientId: z.string().uuid().describe('Patient ID to get statistics for (UUID format)'),
+    patientId: z.string().uuid(),
   }).strict(),
   outputSchema: z.object({
     patient: z.object({
-      id: z.string().describe('Patient UUID'),
-      name: z.string().describe('Patient full name'),
-    }).describe('Patient basic information'),
+      name: z.string(),
+    }),
     stats: z.object({
-      totalAppointments: z.number().describe('Total number of appointments (all statuses)'),
-      upcomingAppointments: z.number().describe('Number of upcoming appointments (pending/confirmed)'),
-      completedAppointments: z.number().describe('Number of completed appointments'),
-    }).describe('Appointment statistics'),
+      totalAppointments: z.number(),
+      upcomingAppointments: z.number(),
+      completedAppointments: z.number(),
+    }),
   }),
   execute: async ({ context }) => {
     try {

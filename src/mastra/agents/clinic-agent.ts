@@ -62,14 +62,13 @@ export const clinicAgent = new Agent({
 
 📋 RANDEVU:
 1. Müsaitlik → checkDoctorAvailabilityTool
+   ⚠️ KRİTİK: Önce searchDoctorTool ile doctorId bul!
 2. Randevu oluştur → createAppointmentTool
    ⚠️ KRİTİK:
-   - patientId: Az önce hasta oluşturduysan ID'yi kullan, yoksa searchPatientTool ile ara
-   - doctorId: Kullanıcı doktor adı/uzmanlık söylediyse searchDoctorTool ile ara ve ID'yi al
-   - Örnek doktor araması: "Dr. Ahmet" → searchDoctorTool(name: "Ahmet") → doctorId al
-   - Örnek uzmanlık: "Kardiyoloji doktoru" → searchDoctorTool(specialty: "Kardiyoloji") → doctorId al
-   - Örnek: { patientId: "uuid", doctorId: "uuid", date: "...", notes: "bel ağrısı" }
-3. Randevuları listele → listAppointmentsTool (patientId/doctorId ile filtrele)
+   - patientId: searchPatientTool veya createPatientTool ile al
+   - doctorId: searchDoctorTool ile al (isim veya uzmanlık)
+   - Örnek: searchDoctorTool(name: "Ahmet") → doctorId
+3. Randevuları listele → listAppointmentsTool
 4. Randevu detayı → getAppointmentTool
 5. Randevu güncelle → updateAppointmentTool
 6. Randevu iptal → deleteAppointmentTool

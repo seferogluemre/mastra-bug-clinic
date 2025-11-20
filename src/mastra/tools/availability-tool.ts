@@ -2,34 +2,27 @@ import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import prisma from '../../core/prisma';
 
-const DEFAULT_DOCTOR_ID = '660e8400-e29b-41d4-a716-446655440001'; 
-
 export const checkDoctorAvailabilityTool = createTool({
   id: 'checkDoctorAvailability',
-  description: 'Checks doctor availability for a specific date and shows available time slots. Use this when user asks about available times. Always uses default doctor.',
+  description: 'Check doctor availability for date. Use searchDoctorTool first if doctor not specified.',
   inputSchema: z.object({
-    date: z.string().describe('Date to check availability in YYYY-MM-DD format (e.g., 2024-10-20 or 2025-11-13)'),
+    doctorId: z.string().uuid().describe('Use searchDoctorTool to find doctor ID'),
+    date: z.string().describe('YYYY-MM-DD format'),
   }).strict(),
   outputSchema: z.object({
-    date: z.string().describe('The date being checked (YYYY-MM-DD format)'),
-    doctorName: z.string().describe('Full name of the doctor'),
+    date: z.string(),
+    doctorName: z.string(),
     workingHours: z.object({
-      start: z.string().describe('Working hours start time (HH:MM format)'),
-      end: z.string().describe('Working hours end time (HH:MM format)'),
-    }).describe('Doctor working hours for the day'),
+      start: z.string(),
+      end: z.string(),
+    }),
     availableSlots: z.array(z.object({
-      startTime: z.string().describe('Slot start time in ISO format'),
-      endTime: z.string().describe('Slot end time in ISO format'),
-      duration: z.number().describe('Slot duration in minutes'),
-    }).describe('Available time slot')).describe('List of available appointment slots'),
-    bookedSlots: z.array(z.object({
-      startTime: z.string().describe('Booked slot start time in ISO format'),
-      endTime: z.string().describe('Booked slot end time in ISO format'),
-      patientName: z.string().describe('Name of patient who booked this slot'),
-    }).describe('Booked time slot')).describe('List of already booked slots'),
+      startTime: z.string(),
+      endTime: z.string(),
+    })),
   }),
   execute: async ({ context }) => {
-    const doctorId = DEFAULT_DOCTOR_ID;
+    const doctorId = context.doctorId;
     const targetDate = new Date(context.date);
 
     // Doktor bilgisi

@@ -4,20 +4,17 @@ import { doctorService } from '../../modules/doctor/service';
 
 export const createDoctorTool = createTool({
   id: 'createDoctor',
-  description: 'Register a new doctor in the system. Use when user wants to add a new doctor.',
+  description: 'Register new doctor.',
   inputSchema: z.object({
-    name: z.string().min(2).describe('Doctor full name (minimum 2 characters)'),
-    specialty: z.string().min(2).describe('Medical specialty (e.g., Kardiyoloji, Dermatoloji, Ortopedi)'),
-    phone: z.string().optional().describe('Doctor phone number (optional)'),
-    email: z.string().email().optional().describe('Doctor email address (optional, must be valid email)'),
+    name: z.string().min(2),
+    specialty: z.string().min(2),
+    phone: z.string().optional(),
+    email: z.string().email().optional(),
   }).strict(),
   outputSchema: z.object({
-    id: z.string().describe('Unique doctor ID (UUID)'),
-    name: z.string().describe('Doctor full name'),
-    specialty: z.string().describe('Medical specialty'),
-    phone: z.string().nullable().describe('Doctor phone number'),
-    email: z.string().nullable().describe('Doctor email address'),
-    createdAt: z.string().describe('Registration timestamp'),
+    id: z.string(),
+    name: z.string(),
+    specialty: z.string(),
   }),
   execute: async ({ context }) => {
     try {
@@ -33,28 +30,22 @@ export const createDoctorTool = createTool({
     }
   },
 });
-1
+
 export const getDoctorTool = createTool({
   id: 'getDoctor',
-  description: 'Get doctor information by ID. Returns doctor details with upcoming appointments.',
+  description: 'Get doctor info by ID.',
   inputSchema: z.object({
-    doctorId: z.string().uuid().describe('Doctor ID (UUID format)'),
+    doctorId: z.string().uuid(),
   }).strict(),
   outputSchema: z.object({
-    id: z.string().describe('Unique doctor ID (UUID)'),
-    name: z.string().describe('Doctor full name'),
-    specialty: z.string().describe('Medical specialty'),
-    phone: z.string().nullable().describe('Doctor phone number'),
-    email: z.string().nullable().describe('Doctor email address'),
-    createdAt: z.string().describe('Registration timestamp'),
-    updatedAt: z.string().describe('Last update timestamp'),
+    id: z.string(),
+    name: z.string(),
+    specialty: z.string(),
     upcomingAppointments: z.array(z.object({
-      id: z.string().describe('Appointment ID'),
-      date: z.string().describe('Appointment date and time'),
-      status: z.string().describe('Appointment status'),
-      patientName: z.string().describe('Patient full name'),
-      notes: z.string().nullable().describe('Appointment notes'),
-    }).describe('Appointment record')).describe('List of upcoming appointments'),
+      date: z.string(),
+      status: z.string(),
+      patientName: z.string(),
+    })),
   }),
   execute: async ({ context }) => {
     try {
@@ -68,17 +59,15 @@ export const getDoctorTool = createTool({
 
 export const listDoctorsTool = createTool({
   id: 'listDoctors',
-  description: 'List all doctors. Optionally filter by specialty (e.g., Kardiyoloji, Dermatoloji).',
+  description: 'List all doctors. Filter by specialty optional.',
   inputSchema: z.object({
-    specialty: z.string().optional().describe('Filter doctors by specialty (optional, e.g., Kardiyoloji, Dermatoloji, Ortopedi)'),
+    specialty: z.string().optional(),
   }).strict(),
   outputSchema: z.array(z.object({
-    id: z.string().describe('Unique doctor ID (UUID)'),
-    name: z.string().describe('Doctor full name'),
-    specialty: z.string().describe('Medical specialty'),
-    phone: z.string().nullable().describe('Doctor phone number'),
-    email: z.string().nullable().describe('Doctor email address'),
-  }).describe('Doctor information')).describe('List of doctors'),
+    id: z.string(),
+    name: z.string(),
+    specialty: z.string(),
+  })),
   execute: async ({ context }) => {
     try {
       const doctors = await doctorService.list({
@@ -93,19 +82,17 @@ export const listDoctorsTool = createTool({
 
 export const searchDoctorTool = createTool({
   id: 'searchDoctor',
-  description: 'Search doctors by name, specialty, or email. Provide at least one search parameter.',
+  description: 'Search doctors by name, specialty, or email.',
   inputSchema: z.object({
-    name: z.string().optional().describe('Search by doctor name (partial match supported)'),
-    specialty: z.string().optional().describe('Search by medical specialty'),
-    email: z.string().optional().describe('Search by doctor email address'),
+    name: z.string().optional(),
+    specialty: z.string().optional(),
+    email: z.string().optional(),
   }).strict(),
   outputSchema: z.array(z.object({
-    id: z.string().describe('Unique doctor ID (UUID)'),
-    name: z.string().describe('Doctor full name'),
-    specialty: z.string().describe('Medical specialty'),
-    phone: z.string().nullable().describe('Doctor phone number'),
-    email: z.string().nullable().describe('Doctor email address'),
-  }).describe('Doctor search result')).describe('List of matching doctors'),
+    id: z.string(),
+    name: z.string(),
+    specialty: z.string(),
+  })),
   execute: async ({ context }) => {
     try {
       const doctors = await doctorService.search(context);
@@ -118,21 +105,18 @@ export const searchDoctorTool = createTool({
 
 export const updateDoctorTool = createTool({
   id: 'updateDoctor',
-  description: 'Update doctor information. Provide only the fields you want to change.',
+  description: 'Update doctor info.',
   inputSchema: z.object({
-    doctorId: z.string().uuid().describe('Doctor ID to update (UUID format)'),
-    name: z.string().min(2).optional().describe('New doctor name (minimum 2 characters, optional)'),
-    specialty: z.string().min(2).optional().describe('New medical specialty (optional)'),
-    phone: z.string().optional().describe('New phone number (optional)'),
-    email: z.string().email().optional().describe('New email address (optional, must be valid email)'),
+    doctorId: z.string().uuid(),
+    name: z.string().min(2).optional(),
+    specialty: z.string().min(2).optional(),
+    phone: z.string().optional(),
+    email: z.string().email().optional(),
   }).strict(),
   outputSchema: z.object({
-    id: z.string().describe('Unique doctor ID (UUID)'),
-    name: z.string().describe('Updated doctor full name'),
-    specialty: z.string().describe('Updated medical specialty'),
-    phone: z.string().nullable().describe('Updated doctor phone number'),
-    email: z.string().nullable().describe('Updated doctor email address'),
-    updatedAt: z.string().describe('Update timestamp'),
+    id: z.string(),
+    name: z.string(),
+    specialty: z.string(),
   }),
   execute: async ({ context }) => {
     try {
@@ -147,21 +131,20 @@ export const updateDoctorTool = createTool({
 
 export const getDoctorStatsTool = createTool({
   id: 'getDoctorStats',
-  description: 'Get doctor statistics including upcoming appointments, today\'s appointments, and total patients.',
+  description: 'Get doctor statistics.',
   inputSchema: z.object({
-    doctorId: z.string().uuid().describe('Doctor ID to get statistics for (UUID format)'),
+    doctorId: z.string().uuid(),
   }).strict(),
   outputSchema: z.object({
     doctor: z.object({
-      id: z.string().describe('Doctor UUID'),
-      name: z.string().describe('Doctor full name'),
-      specialty: z.string().describe('Medical specialty'),
-    }).describe('Doctor basic information'),
+      name: z.string(),
+      specialty: z.string(),
+    }),
     stats: z.object({
-      upcomingAppointments: z.number().describe('Number of upcoming appointments'),
-      todayAppointments: z.number().describe('Number of today\'s appointments'),
-      totalPatients: z.number().describe('Total number of unique patients'),
-    }).describe('Doctor statistics'),
+      upcomingAppointments: z.number(),
+      todayAppointments: z.number(),
+      totalPatients: z.number(),
+    }),
   }),
   execute: async ({ context }) => {
     try {
@@ -175,30 +158,25 @@ export const getDoctorStatsTool = createTool({
 
 export const getDoctorScheduleTool = createTool({
   id: 'getDoctorSchedule',
-  description: 'Get doctor\'s schedule for a specific date. Shows all appointments for that day.',
+  description: 'Get doctor schedule for specific date.',
   inputSchema: z.object({
-    doctorId: z.string().uuid().describe('Doctor ID (UUID format)'),
-    date: z.string().describe('Date to check schedule in YYYY-MM-DD format (e.g., 2024-10-20)'),
+    doctorId: z.string().uuid(),
+    date: z.string().describe('YYYY-MM-DD format'),
   }).strict(),
   outputSchema: z.object({
     doctor: z.object({
-      id: z.string().describe('Doctor UUID'),
-      name: z.string().describe('Doctor full name'),
-      specialty: z.string().describe('Medical specialty'),
-    }).describe('Doctor information'),
-    date: z.string().describe('Schedule date (YYYY-MM-DD)'),
+      name: z.string(),
+      specialty: z.string(),
+    }),
+    date: z.string(),
     appointments: z.array(z.object({
-      id: z.string().describe('Appointment ID'),
-      date: z.string().describe('Appointment date and time (ISO format)'),
-      duration: z.number().describe('Duration in minutes'),
-      status: z.string().describe('Appointment status'),
+      date: z.string(),
+      duration: z.number(),
+      status: z.string(),
       patient: z.object({
-        id: z.string().describe('Patient ID'),
-        name: z.string().describe('Patient name'),
-        phone: z.string().nullable().describe('Patient phone'),
-      }).describe('Patient information'),
-      notes: z.string().nullable().describe('Appointment notes'),
-    }).describe('Appointment')).describe('List of appointments'),
+        name: z.string(),
+      }),
+    })),
   }),
   execute: async ({ context }) => {
     try {
