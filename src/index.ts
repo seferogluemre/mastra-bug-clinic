@@ -8,6 +8,7 @@ import { success, ZodError } from 'zod/v4';
 import { jwt } from '@elysiajs/jwt';
 import { authService, authenticateRequest } from './modules/auth';
 import { JWT_SECRET } from './utils/jwt';
+import prisma from './core/prisma';
 
 const app = new Elysia()
   .use(swagger())
@@ -59,6 +60,11 @@ const app = new Elysia()
         return { success: false, error: 'Mesaj bulunamadı' };
       }
 
+      const user = await prisma.user.findUnique({
+        where: { id: uniqueUserId },
+        select: { firstName: true, lastName: true, email: true },
+      });
+
       const uniqueThreadId = threadId;
       const agent = mastra.getAgent('clinicAgent');
       if (!agent) {
@@ -72,12 +78,13 @@ const app = new Elysia()
       });
       const todayISO = today.toISOString().split('T')[0];
 
-      console.log('📅 Context:', { todayStr, todayISO, message: userMessage });
+      console.log('📅 Context:', { todayStr, todayISO, message: userMessage, user: user?.firstName });
 
       let lastError: Error | null = null;
       for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
         try {
-          const contextMessage = `BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${userMessage}`;
+          const userInfo = user ? `KULLANICI: ${user.firstName} ${user.lastName}` : '';
+          const contextMessage = `${userInfo ? userInfo + '\n' : ''}BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${userMessage}`;
 
           //todo!:generate yerine stream kullanılcak
           const result = await agent.generate(contextMessage, {
@@ -87,7 +94,19 @@ const app = new Elysia()
           });
 
           let cleanMessage = result.text || 'Agent yanıt vermedi.';
-          cleanMessage = cleanMessage.replace(/<function=[^>]*>.*?<\/function>/gs, '').trim();
+
+          // Temizlik: function tags, JSON blocks, tekrarlı cevaplar
+          cleanMessage = cleanMessage
+            .replace(/<function=[^>]*>.*?<\/function>/gs, '')
+            .replace(/\{\"id\":.*?\}/gs, '')
+            .replace(/```json[\s\S]*?```/g, '')
+            .trim();
+
+          // Aynı mesajın tekrarını engelle
+          const lines = cleanMessage.split('\n').filter((line, index, self) => {
+            return self.indexOf(line) === index || line.trim() === '';
+          });
+          cleanMessage = lines.join('\n').trim();
 
           return {
             success: true,
