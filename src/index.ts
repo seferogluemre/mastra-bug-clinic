@@ -65,6 +65,17 @@ const app = new Elysia()
         select: { firstName: true, lastName: true, email: true },
       });
 
+      let patientInfo = '';
+      if (user?.email) {
+        const patient = await prisma.patient.findUnique({
+          where: { email: user.email },
+          select: { id: true, name: true }
+        });
+        if (patient) {
+          patientInfo = `CURRENT_PATIENT_ID: ${patient.id}\nCURRENT_PATIENT_NAME: ${patient.name}`;
+        }
+      }
+
       const uniqueThreadId = threadId;
       const agent = mastra.getAgent('clinicAgent');
       if (!agent) {
@@ -80,49 +91,17 @@ const app = new Elysia()
 
       console.log('📅 Context:', { todayStr, todayISO, message: userMessage, user: user?.firstName });
 
-      let lastError: Error | null = null;
-      for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-        try {
-          const userInfo = user ? `KULLANICI: ${user.firstName} ${user.lastName}` : '';
-          const contextMessage = `${userInfo ? userInfo + '\n' : ''}BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${userMessage}`;
+      const userInfo = user ? `KULLANICI: ${user.firstName} ${user.lastName}` : '';
+      const contextMessage = `${userInfo ? userInfo + '\n' : ''}${patientInfo ? patientInfo + '\n' : ''}BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${userMessage}`;
 
-          //todo!:generate yerine stream kullanılcak
-          const result = await agent.generate(contextMessage, {
-            threadId: uniqueThreadId,
-            resourceId: uniqueUserId,
-            maxSteps: 5,
-          });
+      // Use stream instead of generate
+      const streamResult = await agent.stream(contextMessage, {
+        threadId: uniqueThreadId,
+        resourceId: uniqueUserId,
+      });
 
-          let cleanMessage = result.text || 'Agent yanıt vermedi.';
-
-          // Temizlik: function tags, JSON blocks, tekrarlı cevaplar
-          cleanMessage = cleanMessage
-            .replace(/<function=[^>]*>.*?<\/function>/gs, '')
-            .replace(/\{\"id\":.*?\}/gs, '')
-            .replace(/```json[\s\S]*?```/g, '')
-            .trim();
-
-          // Aynı mesajın tekrarını engelle
-          const lines = cleanMessage.split('\n').filter((line, index, self) => {
-            return self.indexOf(line) === index || line.trim() === '';
-          });
-          cleanMessage = lines.join('\n').trim();
-
-          return {
-            success: true,
-            data: {
-              message: cleanMessage,
-              threadId: uniqueThreadId,
-              userId: uniqueUserId,
-            },
-          };
-        } catch (err) {
-          lastError = err instanceof Error ? err : new Error('Unknown error');
-          // Rate limit logic omitted for brevity but could be kept
-          throw lastError;
-        }
-      }
-      throw lastError;
+      // Return the stream directly
+      return streamResult.textStream;
     } catch (error) {
       console.error('❌ Chat error:', error);
       set.status = 500;
@@ -130,8 +109,6 @@ const app = new Elysia()
     }
   })
   .post("/api/thread-list", async ({ body, set, headers, jwt }) => {
-    // ... existing code ...
-    // I need to target the specific block to fix storage check, but replace_file_content works on contiguous blocks.
     // I'll just fix the chat endpoint here and do a separate call for storage if needed, or include it if it's close.
     // The storage call is in GET /api/thread-list which is further down.
     // I'll just return the chat endpoint revert here.

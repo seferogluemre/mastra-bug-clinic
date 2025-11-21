@@ -37,6 +37,7 @@ interface Thread {
     threadId: string
     title: string
     createdAt: string
+    messages?: { id: string; role: 'user' | 'assistant'; content: string; createdAt?: string }[]
 }
 
 export default function ChatPage() {
@@ -124,25 +125,53 @@ export default function ChatPage() {
         setIsLoading(true)
 
         try {
-            const res = await fetchClient("/api/chat", {
-                method: "POST",
+            const token = localStorage.getItem("token")
+            const response = await fetch(`${API_URL}/api/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` }),
+                },
                 body: JSON.stringify({
-                    message: userMessage.content,
+                    message: input,
                     threadId: activeThreadId
                 })
             })
 
-            if (res.success && res.data.message) {
-                const botMessage = {
-                    id: (Date.now() + 1).toString(),
-                    role: 'assistant' as const,
-                    content: res.data.message,
-                    createdAt: new Date().toISOString()
-                }
-                setMessages(prev => [...prev, botMessage])
-            } else {
-                console.error("Chat response error:", res.error)
-                toast.error("Mesaj gönderilemedi: " + res.error)
+            if (!response.ok) {
+                throw new Error('Mesaj gönderilemedi')
+            }
+
+            if (!response.body) {
+                throw new Error('Yanıt gövdesi boş')
+            }
+
+            // Create a placeholder for the assistant's message
+            const botMessageId = (Date.now() + 1).toString()
+            const botMessage = {
+                id: botMessageId,
+                role: 'assistant' as const,
+                content: '',
+                createdAt: new Date().toISOString()
+            }
+            setMessages(prev => [...prev, botMessage])
+
+            const reader = response.body.getReader()
+            const decoder = new TextDecoder()
+            let accumulatedContent = ''
+
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                const chunk = decoder.decode(value, { stream: true })
+                accumulatedContent += chunk
+
+                setMessages(prev => prev.map(msg =>
+                    msg.id === botMessageId
+                        ? { ...msg, content: accumulatedContent }
+                        : msg
+                ))
             }
         } catch (error) {
             console.error("Failed to send message", error)
@@ -353,7 +382,28 @@ export default function ChatPage() {
                                                 </div>
                                                 <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
                                                     {typeof m.content === 'string' ? (
-                                                        m.content
+                                                        (() => {
+                                                            // Clean up JSON data if present at the start of the message
+                                                            let content = m.content;
+                                                            if (content.trim().startsWith('[')) {
+                                                                try {
+                                                                    // Try to match JSON array at the start
+                                                                    // This regex looks for a pattern starting with [ and ending with ]
+                                                                    // It uses non-greedy matching for the content inside
+                                                                    // We use [\s\S] instead of . with /s flag for compatibility
+                                                                    const match = content.match(/^(\[\{[\s\S]*?\}\])\s*([\s\S]*)/);
+                                                                    if (match) {
+                                                                        // Verify if the first part is valid JSON
+                                                                        JSON.parse(match[1]);
+                                                                        // If valid, use the rest of the content
+                                                                        content = match[2] || "";
+                                                                    }
+                                                                } catch (e) {
+                                                                    // If parsing fails, keep original content
+                                                                }
+                                                            }
+                                                            return content;
+                                                        })()
                                                     ) : (
                                                         <span className="italic text-gray-500">
                                                             {/* Handle tool calls or other non-string content */}
