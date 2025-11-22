@@ -20,3 +20,4 @@ export const mastra = new Mastra({
     default: { enabled: true },
   },
 });
+

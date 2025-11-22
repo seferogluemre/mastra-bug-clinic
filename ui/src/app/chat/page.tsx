@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Plus, MessageSquare, LogOut, Send, User, Bot, MoreVertical } from "lucide-react"
+import { Plus, MessageSquare, LogOut, Send, User, Bot, MoreVertical, TurkishLira, Trash2 } from "lucide-react"
 import {
     Dialog,
     DialogContent,
@@ -48,9 +48,10 @@ export default function ChatPage() {
     const [user, setUser] = useState<{ name: string; email: string } | null>(null)
 
     // New Thread Dialog State
-    const [isNewThreadDialogOpen, setIsNewThreadDialogOpen] = useState(false)
-    const [newThreadTitle, setNewThreadTitle] = useState("")
-    const [isCreatingThread, setIsCreatingThread] = useState(false)
+    const [isNewThreadDialogOpen, setIsNewThreadDialogOpen] = useState<boolean>(false)
+    const [newThreadTitle, setNewThreadTitle] = useState<string>("")
+    const [isCreatingThread, setIsCreatingThread] = useState<boolean>(false)
+    const [isDeleteThreadDialogOpen, setIsDeleteThreadDialogOpen] = useState<boolean>(false)
 
     // Auth check
     useEffect(() => {
@@ -190,6 +191,26 @@ export default function ChatPage() {
 
     const activeThread = threads.find(t => t.threadId === activeThreadId)
 
+    function deleteThread(id: string) {
+        if (!id) return;
+
+        const updatedThreads = threads.filter(thr => thr.threadId !== id)
+        setThreads(updatedThreads)
+
+        if (activeThread?.threadId == id) {
+            setActiveThreadId(null)
+            setMessages([])
+        }
+
+        try {
+            fetchClient(`/api/thread-list/${id}`, {
+                method: "DELETE",
+            })
+
+        } catch (error) {
+            return error;
+        }
+    }
     return (
         <div className="flex h-screen bg-gray-50 dark:bg-gray-900 font-sans">
             {/* Sidebar */}
@@ -248,7 +269,6 @@ export default function ChatPage() {
                                 )}
                                 onClick={() => {
                                     setActiveThreadId(thread.threadId)
-                                    // Load messages from the thread object if available
                                     if (thread.messages) {
                                         setMessages(thread.messages)
                                     } else {
@@ -258,8 +278,30 @@ export default function ChatPage() {
                             >
                                 <MessageSquare className="mr-2 h-4 w-4" />
                                 <span className="truncate font-medium">{thread.title || "Yeni Sohbet"}</span>
+                                <Trash2 className="ml-auto h-4 w-4" onClick={() => deleteThread(thread.threadId)} />
                             </Button>
                         ))}
+                        <Dialog open={isDeleteThreadDialogOpen} onOpenChange={setIsNewThreadDialogOpen}>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Sohbet Silme</DialogTitle>
+                                </DialogHeader>
+                                <form onSubmit={createNewThread}>
+                                    <div className="grid gap-4 py-4">
+                                        <div className="grid grid-cols-4 items-center gap-4">
+                                            <Label htmlFor="title" className="text-right">
+                                                Sohbeti silmek istediginize emin misiniz?
+                                            </Label>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button type="submit" disabled={isDeleteThreadDialogOpen}>
+                                            {isDeleteThreadDialogOpen ? "Siliniyor..." : "Sil"}
+                                        </Button>
+                                    </DialogFooter>
+                                </form>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </ScrollArea>
 
