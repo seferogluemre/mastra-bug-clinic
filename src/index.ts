@@ -1,10 +1,9 @@
 import { Elysia } from 'elysia';
 import { mastra } from './providers/mastra/instance';
-import { z } from 'zod';
-import { chatSchema, newThreadSchema, threadListSchema } from './schemas';
+import { newThreadSchema } from './schemas';
 import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
-import { success, ZodError } from 'zod/v4';
+import { ZodError } from 'zod/v4';
 import { jwt } from '@elysiajs/jwt';
 import { authService, authenticateRequest } from './modules/auth';
 import { JWT_SECRET } from './utils/jwt';
