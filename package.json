@@ -5,16 +5,16 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "bun run src/index.ts",
+    "dev": "bun run server/index.ts",
     "dev:mastra": "mastra dev",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
-    "db:seed": "bun run src/seeders/seed-data.ts",
+    "db:seed": "bun run server/seeders/seed-data.ts",
     "build": "mastra build",
     "start": "mastra start",
-    "sql:test": "bun run src/test/index.test.ts"
+    "sql:test": "bun run server/test/index.test.ts"
   },
   "keywords": [],
   "author": "",
