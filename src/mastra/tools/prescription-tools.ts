@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { prescriptionService } from '../../modules/prescription/service';
+import { prescriptionService } from '../../modules/prescriptions/service';
 
 const medicationSchema = z.object({
   name: z.string().min(1),

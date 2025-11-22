@@ -1,6 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { patientService } from '../../modules/patient/service';
+import { patientService } from '../../modules/patients/service';
 
 export const createPatientTool = createTool({
   id: 'createPatient',

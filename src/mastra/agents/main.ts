@@ -3,35 +3,35 @@ import { Memory } from '@mastra/memory';
 import { LibSQLStore } from '@mastra/libsql';
 import { clinicModel } from '../llm';
 import {
-  createAppointmentTool,
-  listAppointmentsTool,
-  getAppointmentTool,
-  updateAppointmentTool,
-  deleteAppointmentTool,
+    createAppointmentTool,
+    listAppointmentsTool,
+    getAppointmentTool,
+    updateAppointmentTool,
+    deleteAppointmentTool,
 } from '../tools/appointment-tools';
 import { checkDoctorAvailabilityTool } from '../tools/availability-tool';
 import {
-  createPatientTool,
-  getPatientTool,
-  searchPatientTool,
+    createPatientTool,
+    getPatientTool,
+    searchPatientTool,
 } from '../tools/patient-tools';
 import {
-  listDoctorsTool,
-  searchDoctorTool,
+    listDoctorsTool,
+    searchDoctorTool,
 } from '../tools/doctor-tools';
 import {
-  createMedicalRecordTool,
-  listMedicalRecordsTool,
+    createMedicalRecordTool,
+    listMedicalRecordsTool,
 } from '../tools/medical-record-tools';
 import {
-  createPrescriptionTool,
-  listPrescriptionsTool,
+    createPrescriptionTool,
+    listPrescriptionsTool,
 } from '../tools/prescription-tools';
 
 export const clinicAgent = new Agent({
-  name: 'Clinic Assistant',
-  model: clinicModel,
-  instructions: `Sen bir klinik yönetim asistanısın. Türkçe konuş, profesyonel ve yardımsever ol.
+    name: 'Clinic Assistant',
+    model: clinicModel,
+    instructions: `Sen bir klinik yönetim asistanısın. Türkçe konuş, profesyonel ve yardımsever ol.
 
 👤 KULLANICI BİLGİSİ:
 - Mesaj başında "KULLANICI: [Ad Soyad]" bilgisi verilir
@@ -124,26 +124,26 @@ export const clinicAgent = new Agent({
 - Kullanıcı sadece sohbet ediyorsa tool kullanma
 - Hata olursa özür dile ve çözüm sun
 `,
-  tools: {
-    checkDoctorAvailabilityTool,
-    createAppointmentTool,
-    listAppointmentsTool,
-    getAppointmentTool,
-    updateAppointmentTool,
-    deleteAppointmentTool,
-    createPatientTool,
-    getPatientTool,
-    searchPatientTool,
-    listDoctorsTool,
-    searchDoctorTool,
-    createMedicalRecordTool,
-    listMedicalRecordsTool,
-    createPrescriptionTool,
-    listPrescriptionsTool,
-  },
-  memory: new Memory({
-    storage: new LibSQLStore({
-      url: 'file:./mastra-storage.db',
+    tools: {
+        checkDoctorAvailabilityTool,
+        createAppointmentTool,
+        listAppointmentsTool,
+        getAppointmentTool,
+        updateAppointmentTool,
+        deleteAppointmentTool,
+        createPatientTool,
+        getPatientTool,
+        searchPatientTool,
+        listDoctorsTool,
+        searchDoctorTool,
+        createMedicalRecordTool,
+        listMedicalRecordsTool,
+        createPrescriptionTool,
+        listPrescriptionsTool,
+    },
+    memory: new Memory({
+        storage: new LibSQLStore({
+            url: 'file:./mastra-storage.db',
+        }),
     }),
-  }),
 });
