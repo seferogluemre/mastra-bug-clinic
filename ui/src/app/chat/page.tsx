@@ -1,4 +1,4 @@
-import { ChatContainer } from "../../../features/chat"
+import { ChatContainer } from "../../features/chat"
 
 export default function ChatPage() {
     return <ChatContainer />
