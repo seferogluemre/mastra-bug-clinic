@@ -122,7 +122,6 @@ export const clinicAgent = new Agent({
 
 ⚠️ ÖNEMLİ:
 - Kullanıcı sadece sohbet ediyorsa tool kullanma
-- Her zaman nazik ve yardımsever ol
 - Hata olursa özür dile ve çözüm sun
 `,
   tools: {

@@ -109,31 +109,13 @@ const app = new Elysia()
     }
   })
   .post("/api/thread-list", async ({ body, set, headers, jwt }) => {
-    // I'll just fix the chat endpoint here and do a separate call for storage if needed, or include it if it's close.
-    // The storage call is in GET /api/thread-list which is further down.
-    // I'll just return the chat endpoint revert here.
-    return {
-      success: true,
-      data: {
-        threadId: `thread-${Date.now()}`,
-        userId: "user",
-        title: "New Thread",
-        createdAt: new Date().toISOString()
-      }
-    }
-    // Wait, I need to provide the EXACT content to replace.
-    // I will just replace the .post('/api/chat', ...) block.
-  })
-  .post("/api/thread-list", async ({ body, set, headers, jwt }) => {
     try {
-      // JWT Authentication
       const auth = await authenticateRequest(headers, jwt, set);
-      if ('error' in auth) return auth; // Token hatası varsa döndür
+      if ('error' in auth) return auth;
 
       const validatedBody = newThreadSchema.parse(body)
       const { title } = validatedBody;
 
-      // userId token'dan geliyor (güvenli)
       const uniqueUserId = auth.userId;
 
       if (!mastra.storage) {
@@ -181,7 +163,7 @@ const app = new Elysia()
       }
     }
   })
-  .get('/api/thread-list', async ({ query, set, headers, jwt }) => {
+  .get('/api/thread-list', async ({ set, headers, jwt }) => {
     try {
       const auth = await authenticateRequest(headers, jwt, set);
       if ('error' in auth) return auth;

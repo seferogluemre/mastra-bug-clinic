@@ -1,6 +1,8 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 import prisma from '../../core/prisma';
+import { appointmentService } from "../../modules/appointment/service"
+
 
 export const checkDoctorAvailabilityTool = createTool({
   id: 'checkDoctorAvailability',
@@ -25,7 +27,6 @@ export const checkDoctorAvailabilityTool = createTool({
     const doctorId = context.doctorId;
     const targetDate = new Date(context.date);
 
-    // Doktor bilgisi
     const doctor = await prisma.doctor.findUnique({
       where: { id: doctorId },
     });
@@ -36,51 +37,31 @@ export const checkDoctorAvailabilityTool = createTool({
 
     const workingStart = new Date(targetDate);
     workingStart.setHours(9, 0, 0, 0);
-    
+
     const workingEnd = new Date(targetDate);
     workingEnd.setHours(17, 0, 0, 0);
 
     // O gün için mevcut randevular
     const dayStart = new Date(targetDate);
     dayStart.setHours(0, 0, 0, 0);
-    
+
     const dayEnd = new Date(targetDate);
     dayEnd.setHours(23, 59, 59, 999);
 
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        doctorId,
-        date: {
-          gte: dayStart,
-          lte: dayEnd,
-        },
-        status: {
-          in: ['pending', 'confirmed'],
-        },
-      },
-      include: {
-        patient: true,
-      },
-      orderBy: {
-        date: 'asc',
-      },
-    });
+    const appointments = await appointmentService.getDoctorAppointments(doctorId, dayStart, dayEnd);
 
-    // Dolu slotlar
     const bookedSlots = appointments.map(apt => ({
       startTime: apt.date.toISOString(),
       endTime: new Date(apt.date.getTime() + apt.duration * 60000).toISOString(),
       patientName: apt.patient.name,
     }));
 
-    // Müsait slotları hesapla (30 dakikalık aralıklar)
     const availableSlots: Array<{ startTime: string; endTime: string; duration: number }> = [];
     let currentTime = new Date(workingStart);
 
     while (currentTime < workingEnd) {
       const slotEnd = new Date(currentTime.getTime() + 30 * 60000);
 
-      // Bu slot dolu mu?
       const isBooked = appointments.some(apt => {
         const aptEnd = new Date(apt.date.getTime() + apt.duration * 60000);
         return (

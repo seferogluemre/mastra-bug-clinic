@@ -245,7 +245,7 @@ export class DoctorService {
     const targetDate = new Date(date);
     const dayStart = new Date(targetDate);
     dayStart.setHours(0, 0, 0, 0);
-    
+
     const dayEnd = new Date(targetDate);
     dayEnd.setHours(23, 59, 59, 999);
 

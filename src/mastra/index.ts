@@ -14,9 +14,9 @@ export const mastra = new Mastra({
     level: 'info',
   }),
   telemetry: {
-    enabled: false, 
+    enabled: false,
   },
   observability: {
-    default: { enabled: true }, 
+    default: { enabled: true },
   },
 });

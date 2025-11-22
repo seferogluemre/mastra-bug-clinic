@@ -39,19 +39,19 @@ export class AppointmentService {
 
     for (const existing of existingAppointments) {
       const existingEndTime = new Date(existing.date.getTime() + existing.duration * 60000);
-      
-      const isConflict = 
+
+      const isConflict =
         (appointmentDate >= existing.date && appointmentDate < existingEndTime) || // Yeni randevu mevcut randevunun içinde başlıyor
         (appointmentEndTime > existing.date && appointmentEndTime <= existingEndTime) || // Yeni randevu mevcut randevunun içinde bitiyor
         (appointmentDate <= existing.date && appointmentEndTime >= existingEndTime); // Yeni randevu mevcut randevuyu kapsıyor
-      
+
       if (isConflict) {
-        const existingTime = existing.date.toLocaleString('tr-TR', { 
-          day: '2-digit', 
-          month: '2-digit', 
+        const existingTime = existing.date.toLocaleString('tr-TR', {
+          day: '2-digit',
+          month: '2-digit',
           year: 'numeric',
-          hour: '2-digit', 
-          minute: '2-digit' 
+          hour: '2-digit',
+          minute: '2-digit'
         });
         throw new Error(`Bu saatte doktorun başka bir randevusu var (${existingTime})`);
       }
@@ -195,8 +195,33 @@ export class AppointmentService {
       message: 'Randevu iptal edildi',
     };
   }
+
+  async getDoctorAppointments(doctorId: string, dayStart: Date, dayEnd: Date) {
+    try {
+      const appointments = await prisma.appointment.findMany({
+        where: {
+          doctorId,
+          date: {
+            gte: dayStart,
+            lte: dayEnd,
+          },
+          status: {
+            in: ['pending', 'confirmed'],
+          },
+        },
+        include: {
+          patient: true,
+        },
+        orderBy: {
+          date: 'asc',
+        },
+      });
+      return appointments;
+    } catch (error) {
+      throw new Error((error as Error).message)
+    }
+  }
 }
 
 // Singleton instance
 export const appointmentService = new AppointmentService();
-
