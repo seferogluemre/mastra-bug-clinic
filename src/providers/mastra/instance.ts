@@ -1,14 +1,12 @@
 
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
-import { LibSQLStore } from '@mastra/libsql';
 import { clinicAgent } from './agents/main';
+import { storage } from './components/storage';
 
 export const mastra = new Mastra({
   agents: { clinicAgent },
-  storage: new LibSQLStore({
-    url: 'file:./mastra-storage.db',
-  }),
+  storage: storage,
   logger: new PinoLogger({
     name: 'Mastra Clinic',
     level: 'info',

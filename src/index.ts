@@ -1,5 +1,5 @@
 import { Elysia } from 'elysia';
-import { mastra } from './mastra';
+import { mastra } from './providers/mastra/instance';
 import { z } from 'zod';
 import { chatSchema, newThreadSchema, threadListSchema } from './schemas';
 import { swagger } from '@elysiajs/swagger';
@@ -194,9 +194,6 @@ const app = new Elysia()
       }
     }
   })
-
-
-
   .get('/api/thread-list', async ({ set, headers, jwt }) => {
     try {
       const auth = await authenticateRequest(headers, jwt, set);

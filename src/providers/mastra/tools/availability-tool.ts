@@ -1,7 +1,7 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import prisma from '../../core/prisma';
-import { appointmentService } from "../../modules/appointments/service"
+import prisma from '../../../core/prisma';
+import { appointmentService } from "../../../modules/appointments/service"
 
 
 export const checkDoctorAvailabilityTool = createTool({

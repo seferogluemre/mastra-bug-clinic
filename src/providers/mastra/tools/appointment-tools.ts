@@ -1,7 +1,6 @@
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
-import { appointmentService } from '../../modules/appointments/service';
-
+import { appointmentService } from "../../../modules/appointments/service"
 export const createAppointmentTool = createTool({
   id: 'createAppointment',
   description: 'Creates appointment. Search patient/doctor first if not provided.',

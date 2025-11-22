@@ -1,7 +1,7 @@
 import { Agent } from '@mastra/core/agent';
-import { Memory } from '@mastra/memory';
-import { LibSQLStore } from '@mastra/libsql';
-import { clinicModel } from '../llm';
+
+import { clinicModel } from '../../llm/index';
+import { memory } from '../components/memory';
 import {
     createAppointmentTool,
     listAppointmentsTool,
@@ -141,9 +141,5 @@ export const clinicAgent = new Agent({
         createPrescriptionTool,
         listPrescriptionsTool,
     },
-    memory: new Memory({
-        storage: new LibSQLStore({
-            url: 'file:./mastra-storage.db',
-        }),
-    }),
+    memory,
 });
