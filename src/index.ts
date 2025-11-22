@@ -29,6 +29,40 @@ const app = new Elysia()
     status: 'ok',
     timestamp: new Date().toISOString(),
   }))
+  .delete("/api/thread-list/:id", async ({ body, set, headers, jwt, params }) => {
+    try {
+      const auth = authenticateRequest(headers, jwt, set);
+      if ('error' in auth) return auth;
+
+      const uniqueUserId = (await auth).userId;
+      const threadId = params.id;
+
+      if (!mastra.storage) {
+        throw new Error("Storage not initialized")
+      }
+
+      const userThreads = await mastra.storage.getThreadsByResourceId({ resourceId: uniqueUserId as string })
+
+      const threadExists = userThreads?.find((thread) => thread.id == threadId)?.id;
+
+      if (!threadExists) {
+        set.status = 404;
+        return {
+          success: false,
+          error: "Thread not found or you not have authority"
+        }
+      }
+
+      await mastra.storage.deleteThread({ threadId: threadExists })
+
+      return {
+        success: true,
+        message: "Thread Başarıyla silindi"
+      }
+    } catch (error) {
+      throw new Error(`Thread Silerken hata oluştu! ${(error as Error).message}`)
+    }
+  })
   .post('/api/chat', async ({ body, set, headers, jwt }) => {
     try {
       const auth = await authenticateRequest(headers, jwt, set);
@@ -160,40 +194,7 @@ const app = new Elysia()
       }
     }
   })
-  .delete("/api/thread-list", async ({ body, set, headers, jwt, params }) => {
-    try {
-      const auth = authenticateRequest(headers, jwt, set);
-      if ('error' in auth) return auth;
 
-      const uniqueUserId = (await auth).userId;
-      const threadId = params.id;
-
-      if (!mastra.storage) {
-        throw new Error("Storage not initialized")
-      }
-
-      const userThreads = await mastra.storage.getThreadsByResourceId({ resourceId: uniqueUserId as string })
-
-      const threadExists = userThreads?.find((thread) => thread.id == threadId)?.id;
-
-      if (!threadExists) {
-        set.status = 404;
-        return {
-          success: false,
-          error: "Thread not found or you not have authority"
-        }
-      }
-
-      await mastra.storage.deleteThread({ threadId: threadExists })
-
-      return {
-        success: true,
-        message: "Thread Başarıyla silindi"
-      }
-    } catch (error) {
-      throw new Error(`Thread Silerken hata oluştu! ${(error as Error).message}`)
-    }
-  })
 
 
   .get('/api/thread-list', async ({ set, headers, jwt }) => {
@@ -358,5 +359,5 @@ const app = new Elysia()
     }
   })
   .listen(process.env.PORT, () => {
-    console.log('Server is running on http://localhost:3000');
+    console.log(`Server is running on http://localhost:${process.env.PORT}`);
   });

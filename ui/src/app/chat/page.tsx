@@ -52,8 +52,8 @@ export default function ChatPage() {
     const [newThreadTitle, setNewThreadTitle] = useState<string>("")
     const [isCreatingThread, setIsCreatingThread] = useState<boolean>(false)
     const [isDeleteThreadDialogOpen, setIsDeleteThreadDialogOpen] = useState<boolean>(false)
+    const [threadIdToDelete, setThreadIdToDelete] = useState<string | null>(null)
 
-    // Auth check
     useEffect(() => {
         const token = localStorage.getItem("token")
         const storedUser = localStorage.getItem("user")
@@ -191,26 +191,45 @@ export default function ChatPage() {
 
     const activeThread = threads.find(t => t.threadId === activeThreadId)
 
-    function deleteThread(id: string) {
-        if (!id) return;
 
+
+    function handleDelete(e: React.MouseEvent, id: string) {
+        e.stopPropagation()
+        setThreadIdToDelete(id)
+        setIsDeleteThreadDialogOpen(true)
+    }
+
+    async function confirmDelete(e: React.FormEvent) {
+        e.preventDefault()
+        if (!threadIdToDelete) return
+
+        const id = threadIdToDelete
+
+        // Optimistic update
         const updatedThreads = threads.filter(thr => thr.threadId !== id)
         setThreads(updatedThreads)
 
-        if (activeThread?.threadId == id) {
+        if (activeThreadId === id) {
             setActiveThreadId(null)
             setMessages([])
         }
 
+        setIsDeleteThreadDialogOpen(false)
+        setThreadIdToDelete(null)
+
         try {
-            fetchClient(`/api/thread-list/${id}`, {
+            await fetchClient(`/api/thread-list/${id}`, {
                 method: "DELETE",
             })
-
+            toast.success("Sohbet silindi")
         } catch (error) {
-            return error;
+            console.error("Failed to delete thread", error)
+            toast.error("Sohbet silinirken bir hata oluştu")
+            // Revert optimistic update if needed, or just reload threads
+            loadThreads()
         }
     }
+
     return (
         <div className="flex h-screen bg-gray-50 dark:bg-gray-900 font-sans">
             {/* Sidebar */}
@@ -264,7 +283,7 @@ export default function ChatPage() {
                                 key={thread.threadId}
                                 variant={activeThreadId === thread.threadId ? "secondary" : "ghost"}
                                 className={cn(
-                                    "w-full justify-start text-left truncate transition-colors",
+                                    "w-full flex justify-start column-gap-3 text-left truncate transition-colors",
                                     activeThreadId === thread.threadId ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" : "hover:bg-gray-100 dark:hover:bg-gray-700"
                                 )}
                                 onClick={() => {
@@ -277,26 +296,41 @@ export default function ChatPage() {
                                 }}
                             >
                                 <MessageSquare className="mr-2 h-4 w-4" />
-                                <span className="truncate font-medium">{thread.title || "Yeni Sohbet"}</span>
-                                <Trash2 className="ml-auto h-4 w-4" onClick={() => deleteThread(thread.threadId)} />
+                                <span className="truncate font-medium text-start">{thread.title || "Yeni Sohbet"}</span>
+                                <span
+                                    className="text-end"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleDelete(e, thread.threadId)
+                                    }}
+                                >
+                                    <Trash2 className="ml-auto h-4 w-4 opacity-50 hover:opacity-100 hover:text-red-500" />
+                                </span>
+
                             </Button>
                         ))}
-                        <Dialog open={isDeleteThreadDialogOpen} onOpenChange={setIsNewThreadDialogOpen}>
+                        <Dialog open={isDeleteThreadDialogOpen} onOpenChange={setIsDeleteThreadDialogOpen}>
                             <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle>Sohbet Silme</DialogTitle>
                                 </DialogHeader>
-                                <form onSubmit={createNewThread}>
+                                <form onSubmit={confirmDelete}>
                                     <div className="grid gap-4 py-4">
-                                        <div className="grid grid-cols-4 items-center gap-4">
-                                            <Label htmlFor="title" className="text-right">
-                                                Sohbeti silmek istediginize emin misiniz?
+                                        <div className="flex items-center gap-4">
+                                            <Label className="text-left">
+                                                Sohbeti silmek istediginize emin misiniz? Bu işlem geri alınamaz.
                                             </Label>
                                         </div>
                                     </div>
                                     <DialogFooter>
-                                        <Button type="submit" disabled={isDeleteThreadDialogOpen}>
-                                            {isDeleteThreadDialogOpen ? "Siliniyor..." : "Sil"}
+                                        <Button type="button" variant="outline" onClick={(e) => {
+                                            e.preventDefault();
+                                            setIsDeleteThreadDialogOpen(false)
+                                        }}>
+                                            İptal
+                                        </Button>
+                                        <Button type="submit" variant="destructive">
+                                            Sil
                                         </Button>
                                     </DialogFooter>
                                 </form>
