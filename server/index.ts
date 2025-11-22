@@ -124,6 +124,20 @@ const app = new Elysia()
       const userInfo = user ? `KULLANICI: ${user.firstName} ${user.lastName}` : '';
       const contextMessage = `${userInfo ? userInfo + '\n' : ''}${patientInfo ? patientInfo + '\n' : ''}BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${userMessage}`;
 
+      // Manually save user message to ensure persistence
+      if (mastra.storage) {
+        await mastra.storage.saveMessages({
+          messages: [{
+            id: crypto.randomUUID(),
+            threadId: uniqueThreadId,
+            role: 'user',
+            content: userMessage,
+            createdAt: new Date(),
+            type: 'text',
+          }]
+        });
+      }
+
       // Use stream instead of generate
       const streamResult = await agent.stream(contextMessage, {
         threadId: uniqueThreadId,
