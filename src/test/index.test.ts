@@ -2,7 +2,7 @@
 import { LibSQLStore } from "@mastra/libsql";
 
 try {
-    const connectionUrl = new URL("postgresql://user:password@localhost:5432/mydb?schema=public&schemas=public");
+    const connectionUrl = new URL("postgresql://postgres:postgres@localhost:5432/mastra-elysia-api?schemas=public");
     connectionUrl.searchParams.delete("schema");
     connectionUrl.searchParams.delete("schemas");
 

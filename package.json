@@ -13,7 +13,8 @@
     "db:studio": "prisma studio",
     "db:seed": "bun run src/seeders/seed-data.ts",
     "build": "mastra build",
-    "start": "mastra start"
+    "start": "mastra start",
+    "sql:test": "bun run src/test/index.test.ts"
   },
   "keywords": [],
   "author": "",

@@ -12,10 +12,13 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
     // Helper to process message content
     const getMessageContent = (content: string | any) => {
         if (typeof content === 'string') {
+            // Strip tool calls first
+            let processedContent = content.replace(/to=[\w\.]+\s+json\{.*?\}commentary/g, "").trim();
+
             try {
                 // First try to parse the entire content as JSON
-                if (content.trim().startsWith('[')) {
-                    const parsed = JSON.parse(content);
+                if (processedContent.startsWith('[')) {
+                    const parsed = JSON.parse(processedContent);
                     if (Array.isArray(parsed)) {
                         // Filter out reasoning and join text parts
                         const textContent = parsed
@@ -30,8 +33,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
             }
 
             // Fallback for mixed content
-            let processedContent = content;
-            if (processedContent.trim().startsWith('[')) {
+            if (processedContent.startsWith('[')) {
                 try {
                     const match = processedContent.match(/^(\[\{[\s\S]*?\}\])\s*([\s\S]*)/);
                     if (match) {
