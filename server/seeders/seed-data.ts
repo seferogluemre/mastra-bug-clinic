@@ -54,7 +54,7 @@ async function seedDatabase() {
     console.log(`✅ ${appointmentsData.appointments.length} randevu eklendi\n`);
 
     console.log('🎉 Database seeding başarıyla tamamlandı!\n');
-    
+
     const patientCount = await prisma.patient.count();
     const doctorCount = await prisma.doctor.count();
     const appointmentCount = await prisma.appointment.count();

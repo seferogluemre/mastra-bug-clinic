@@ -108,19 +108,34 @@ export function ChatContainer() {
             const reader = response.body.getReader()
             const decoder = new TextDecoder()
             let accumulatedContent = ''
+            let lastUpdate = 0
+            const THROTTLE_MS = 50 // Update every 50ms for smooth streaming
 
             while (true) {
                 const { done, value } = await reader.read()
-                if (done) break
+                if (done) {
+                    // Final update to ensure all content is displayed
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === botMessageId
+                            ? { ...msg, content: accumulatedContent }
+                            : msg
+                    ))
+                    break
+                }
 
                 const chunk = decoder.decode(value, { stream: true })
                 accumulatedContent += chunk
 
-                setMessages(prev => prev.map(msg =>
-                    msg.id === botMessageId
-                        ? { ...msg, content: accumulatedContent }
-                        : msg
-                ))
+                // Throttle updates for smoother streaming
+                const now = Date.now()
+                if (now - lastUpdate > THROTTLE_MS) {
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === botMessageId
+                            ? { ...msg, content: accumulatedContent }
+                            : msg
+                    ))
+                    lastUpdate = now
+                }
             }
         } catch (error) {
             console.error("Failed to send message", error)
