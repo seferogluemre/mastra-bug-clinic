@@ -11,6 +11,18 @@ interface MessageListProps {
 export function MessageList({ messages, isLoading }: MessageListProps) {
     // Helper to process message content
     const getMessageContent = (content: string | any) => {
+        // NEW: Handle object with nested content field (from Mastra agent responses)
+        if (typeof content === 'object' && content !== null && 'content' in content) {
+            // If content has a nested content field, use that instead
+            if (typeof content.content === 'string') {
+                return content.content;
+            }
+            // If nested content is also an object, try to extract it recursively
+            if (typeof content.content === 'object' && content.content !== null) {
+                return getMessageContent(content.content);
+            }
+        }
+
         if (typeof content === 'string') {
             // Strip tool calls first
             let processedContent = content.replace(/to=[\w\.]+\s+json\{.*?\}commentary/g, "").trim();
@@ -113,7 +125,7 @@ export function MessageList({ messages, isLoading }: MessageListProps) {
                                     </div>
                                     <div className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed">
                                         {typeof m.content === 'string' ? getMessageContent(m.content) : (
-                                            <span className="italic text-gray-500">
+                                            <span className="italic ">
                                                 {getMessageContent(m.content)}
                                             </span>
                                         )}

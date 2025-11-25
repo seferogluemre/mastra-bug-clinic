@@ -20,7 +20,7 @@ export function MessageInput({ onSendMessage, isLoading }: MessageInputProps) {
     }
 
     return (
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+        <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex gap-3 items-center">
                 <Input
                     value={input}

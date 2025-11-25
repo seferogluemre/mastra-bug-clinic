@@ -25,9 +25,9 @@ export function ChatArea({ activeThread, messages, isLoading, onSendMessage }: C
     }
 
     return (
-        <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
+        <div className="flex-1 flex flex-col h-screen bg-white dark:bg-gray-900">
             {/* Chat Header */}
-            <div className="h-16 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-between px-6 sticky top-0 z-10">
+            <div className="h-16 border-b border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm flex items-center justify-between px-6 flex-shrink-0">
                 <div className="flex items-center">
                     <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-xl mr-3 shadow-sm">
                         <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />

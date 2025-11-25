@@ -58,7 +58,7 @@ export function ChatSidebar({
     }
 
     return (
-        <div className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-sm z-10">
+        <div className="flex-shrink-0 h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-sm z-10">
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <h1 className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">Mastra AI</h1>
                 <NewThreadDialog
