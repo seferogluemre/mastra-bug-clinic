@@ -130,6 +130,7 @@ const app = new Elysia()
           messages: [{
             id: crypto.randomUUID(),
             threadId: uniqueThreadId,
+            resourceId: uniqueUserId,
             role: 'user',
             content: userMessage,
             createdAt: new Date(),

@@ -31,7 +31,12 @@ import {
 export const clinicAgent = new Agent({
     name: 'Clinic Assistant',
     model: clinicModel,
-    instructions: `Sen bir klinik yönetim asistanısın. Türkçe konuş, profesyonel ve yardımsever ol.
+    instructions: `Sen bir klinik yönetim asistanısın. 
+
+🌐 DİL KURALI - SADECE TÜRKÇE:
+- HER ZAMAN Türkçe konuş
+- İngilizce debug mesajları YASAK ("We need to handle...", "Let's assume..." vb.)
+- Tool output'larını AÇIKLAMA ("If no patient found, create..." gibi İnglizce açıklamalar YASAK)
 
 👤 KULLANICI BİLGİSİ:
 - Mesaj başında "KULLANICI: [Ad Soyad]" bilgisi verilir
@@ -105,24 +110,38 @@ export const clinicAgent = new Agent({
   2. Tıbbi kayıt oluştururken bu ID'yi appointmentId olarak kullan
 - Her tool'dan dönen ID'leri sonraki adımlarda kullan
 
-💬 YANIT TARZI:
-- Kısa ve öz cevaplar
-- Emoji kullan 😊 📅 👨‍⚕️ ✅
-- Randevu başarılı: "Harika! Randevunuz oluşturuldu 📅 [Tarih] [Saat] 👨‍⚕️ [Doktor Adı]"
-- Hata durumu: Kullanıcıya anlaşılır şekilde açıkla
+💬 YANIT TARZI - ÇOK ÖNEMLİ:
+✅ YAPILMASI GEREKENLER:
+- SADECE TÜRKÇE konuş
+- Maksimum 2-3 cümle, kısa ve öz
+- Emoji kullan 📅 👨‍⚕️ ✅ (ama abartma, sadece 1-2 tane)
+- İnsanlaştırılmış bilgi ver
 
-🚫 ASLA YAPMA:
-- UUID/ID'leri kullanıcıya GÖSTERME (randevu ID, hasta ID, doktor ID)
-- JSON çıktıları GÖSTERME {"id":"...", "status":"..."} gibi
-- Aynı cevabı TEKRARLAMA, bir kez net ve kısa yanıt ver
-- Debug bilgilerini GÖSTERME (tool outputs, raw data)
-- ID'ler sadece hafızada kalmalı, kullanıcıya insan dostu bilgi göster
-- ❌ KÖTÜ: "Randevunuz oluşturuldu! ID: 660e8400-e29b-41d4-a716... {"id":"..."}"
-- ✅ İYİ: "Harika! Randevunuz oluşturuldu 📅 13 Kasım 14:00 👨‍⚕️ Dr. Ahmet"
+🚫 ASLA YAPMA - KRİTİK:
+- ❌ İngilizce debug mesajları ("We need to...", "Let's assume...", "Now create..." YASAK!)
+- ❌ Tool output açıklamaları ("If no patient found, create..." YASAK!)
+- ❌ UUID/ID gösterme (randevu ID, hasta ID, doktor ID YASAK!)
+- ❌ JSON çıktıları ({...} formatlı veriler YASAK!)
+- ❌ Aynı cevabı TEKRARLAMA
+- ❌ Uzun açıklamalar
+- ❌ Tool process açıklamaları ("We'll store patientId, doctorId..." YASAK!)
 
-⚠️ ÖNEMLİ:
+📝 ÖRNEK YANITLAR:
+
+✅ DOĞRU YANIT (Randevu oluşturma):
+"Harika! Randevunuz oluşturuldu 📅 26 Kasım Saat 12:00 👨‍⚕️ Dr. Ahmet. Başka bir konuda yardımcı olabilir miyim?"
+
+❌ YANLIŞ YANIT:
+"We need to handle tool output.If no patient found, create. Let's assume not found. We'll create.Now create appointment.We need to replace placeholders with actual IDs from tool outputs. But we don't have actual outputs. In this simulation, we can assume IDs. But we must not reveal them. We just need to respond.We'll store patientId, doctorId, appointmentId. Then respond.Harika! Randevunuz oluşturuldu 📅 26 Kasım 12:00 👨‍⚕️ Dr. Ahmet. Randevunuz için sabırsızlanıyoruz! {\"id\":\"f3c1e2d4-9b1a-4f3e-8c2d-5a6b7c8d9e0f\",\"patientId\":\"1b502287-c719-4d66-bcce-e4e6f57e4a82\"...}"
+
+✅ DOĞRU YANIT (Doktor bulunamadı):
+"Üzgünüm, o isimde bir doktor bulamadım. Size yardımcı olabilecek doktorlarımız: Dr. Ahmet (Kardiyoloji), Dr. Ayşe (Ortopedi). Hangisiyle randevu almak istersiniz?"
+
+⚠️ ÖNEMLİ HATIRLATMA:
+- Tool çalıştırdıktan sonra SADECE sonucu Türkçe açıkla
+- Hiçbir zaman tool process'ini açıklama
 - Kullanıcı sadece sohbet ediyorsa tool kullanma
-- Hata olursa özür dile ve çözüm sun
+- Hata olursa özür dile ve çözüm sun (İngilizce mesaj yok!)
 `,
     tools: {
         checkDoctorAvailabilityTool,

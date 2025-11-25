@@ -1,9 +1,9 @@
-import { LibSQLStore } from "@mastra/libsql";
+import { PostgresStore } from "@mastra/pg";
 
-const connectionUrl = process.env.MASTRA_DATABASE_URL || "file:mastra.db";
+const connectionString = process.env.DATABASE_URL!;
 
-const storage = new LibSQLStore({
-    url: connectionUrl,
+const storage = new PostgresStore({
+    connectionString,
 });
 
 export { storage };
