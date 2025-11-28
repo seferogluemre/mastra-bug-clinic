@@ -12,6 +12,15 @@ export class AuthService {
       throw new Error('Bu email zaten kayıtlı');
     }
 
+    const roleSlug = data.role || 'patient';
+    const role = await prisma.role.findUnique({
+      where: { slug: roleSlug },
+    });
+
+    if (!role) {
+      throw new Error('Geçersiz rol');
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = await prisma.user.create({
@@ -20,6 +29,12 @@ export class AuthService {
         hashedPassword,
         firstName: data.firstName,
         lastName: data.lastName,
+        rolesSlugs: [role.slug],
+        userRoles: {
+          create: {
+            roleId: role.id,
+          },
+        },
       },
       select: {
         id: true,
@@ -27,6 +42,7 @@ export class AuthService {
         firstName: true,
         lastName: true,
         createdAt: true,
+        rolesSlugs: true,
       },
     });
 
@@ -34,12 +50,12 @@ export class AuthService {
       id: user.id,
       email: user.email,
       name: `${user.firstName} ${user.lastName}`,
+      role: role.slug,
       createdAt: user.createdAt,
     };
   }
 
   async login(email: string, password: string) {
-    // Kullanıcıyı bul
     const user = await prisma.user.findUnique({
       where: { email },
     });

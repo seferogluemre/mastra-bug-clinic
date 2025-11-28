@@ -95,7 +95,7 @@ const app = new Elysia()
 
       const user = await prisma.user.findUnique({
         where: { id: uniqueUserId },
-        select: { firstName: true, lastName: true, email: true },
+        select: { firstName: true, lastName: true, email: true, rolesSlugs: true },
       });
 
       let patientInfo = '';
@@ -122,9 +122,10 @@ const app = new Elysia()
       });
       const todayISO = today.toISOString().split('T')[0];
 
-      console.log('📅 Context:', { todayStr, todayISO, message: userMessage, user: user?.firstName });
+      console.log('📅 Context:', { todayStr, todayISO, message: userMessage, user: user?.firstName, role: user?.rolesSlugs[0] });
 
-      const userInfo = user ? `KULLANICI: ${user.firstName} ${user.lastName}` : '';
+      const userRole = user?.rolesSlugs?.[0] || 'patient';
+      const userInfo = user ? `KULLANICI: ${user.firstName} ${user.lastName} (ROL: ${userRole})` : '';
       const contextMessage = `${userInfo ? userInfo + '\n' : ''}${patientInfo ? patientInfo + '\n' : ''}BUGÜN: ${todayStr} (${todayISO})\n\nKullanıcı mesajı: ${userMessage}`;
 
       // Manually save user message to ensure persistence
@@ -307,7 +308,7 @@ const app = new Elysia()
   })
   .post('/api/auth/register', async ({ body, set }) => {
     try {
-      const { email, password, firstName, lastName } = body as any;
+      const { email, password, firstName, lastName, role } = body as any;
 
       if (!email || !password || !firstName || !lastName) {
         set.status = 400;
@@ -317,7 +318,7 @@ const app = new Elysia()
         };
       }
 
-      const user = await authService.register({ email, password, firstName, lastName });
+      const user = await authService.register({ email, password, firstName, lastName, role });
 
       return {
         success: true,
