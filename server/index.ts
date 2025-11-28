@@ -5,7 +5,8 @@ import { swagger } from '@elysiajs/swagger';
 import { cors } from '@elysiajs/cors';
 import { ZodError } from 'zod/v4';
 import { jwt } from '@elysiajs/jwt';
-import { authService, authenticateRequest } from './modules/auth';
+import { authService, authenticateRequest, authPlugin } from './modules/auth';
+import { rolesController } from './modules/auth/roles';
 import { JWT_SECRET } from './utils/jwt';
 import prisma from './core/prisma';
 
@@ -16,6 +17,8 @@ const app = new Elysia()
     name: 'jwt',
     secret: JWT_SECRET,
   }))
+  .use(authPlugin)
+  .use(rolesController)
   .get('/', () => ({
     message: 'Klinik Yönetim Sistemi API',
     version: '1.0.0',
