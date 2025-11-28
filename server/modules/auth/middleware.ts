@@ -3,7 +3,7 @@ import { extractTokenFromHeader, isValidToken } from '../../utils/jwt';
 export async function authenticateRequest(headers: any, jwt: any, set: any) {
   const authHeader = headers.authorization || headers.Authorization;
   const token = extractTokenFromHeader(authHeader);
-  
+
   if (!token) {
     set.status = 401;
     return {
@@ -13,7 +13,7 @@ export async function authenticateRequest(headers: any, jwt: any, set: any) {
   }
 
   const payload = await jwt.verify(token);
-  
+
   if (!payload || !isValidToken(payload)) {
     set.status = 401;
     return {

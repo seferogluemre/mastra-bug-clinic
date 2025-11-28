@@ -7,7 +7,7 @@ export class AuthService {
     const existingUser = await prisma.user.findUnique({
       where: { email: data.email },
     });
-    
+
     if (existingUser) {
       throw new Error('Bu email zaten kayıtlı');
     }
