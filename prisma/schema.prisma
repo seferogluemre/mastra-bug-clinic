@@ -8,15 +8,48 @@ datasource db {
 }
 
 model User {
-  id             String   @id @default(uuid())
-  email          String   @unique
-  hashedPassword String   @map("hashed_password") @db.Text
-  firstName      String   @default("") @map("first_name") @db.VarChar(25)
-  lastName       String   @default("") @map("last_name") @db.VarChar(25)
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id             String     @id @default(uuid())
+  email          String     @unique
+  hashedPassword String     @map("hashed_password") @db.Text
+  firstName      String     @default("") @map("first_name") @db.VarChar(25)
+  lastName       String     @default("") @map("last_name") @db.VarChar(25)
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+  rolesSlugs     String[]   @default([]) @map("roles_slugs")
+  userRoles      UserRole[]
 
   @@map("users")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  uuid        String   @unique @default(uuid())
+  name        String   @unique @db.VarChar(64)
+  slug        String   @unique @db.VarChar(64)
+  description String?  @db.VarChar(255)
+  permissions Json     @default("[]") @db.JsonB
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userRoles UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  id String @id @default(uuid())
+
+  userId String @map("user_id")
+  roleId Int    @map("role_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([roleId])
+  @@map("user_roles")
 }
 
 model Patient {
