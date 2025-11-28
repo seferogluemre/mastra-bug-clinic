@@ -1,4 +1,4 @@
-import prisma from '../../../core/prisma';
+import prisma from '../../../../core/prisma';
 import type { PermissionIdentifier, PermissionKey } from './types';
 
 // Helper types

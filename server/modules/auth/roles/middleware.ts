@@ -1,5 +1,5 @@
 import type { AuthContext, PermissionIdentifier } from './types';
-import { isPermissionGrantedToUser } from './helpers';
+import { isPermissionGrantedToUser } from './helpers/helpers';
 
 export function withPermission(permission?: PermissionIdentifier) {
     return {
