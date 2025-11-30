@@ -99,6 +99,7 @@ const app = new Elysia()
       });
 
       let patientInfo = '';
+
       if (user?.email) {
         const patient = await prisma.patient.findUnique({
           where: { email: user.email },
